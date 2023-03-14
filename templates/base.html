@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Maori Dictionary | home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css"/>
+    <link href="{{ url_for('static', filename='MDW.css') }}" rel="stylesheet">
+</head>
+<body>
+<nav>
+    <div class="container">
+        <div class="navbar-brand">smile.</div>
+        <div class="navbar-links">
+            <a href="/">home</a>
+            <a href="/menu/0">menu</a>
+            {% if logged_in %}
+                <a href="/logout">logout</a>
+                {% if admin %}
+                    <a href="/admin">admin</a>
+                {% endif %}
+                {% else %}
+                <a href="/login">login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <header>
+        <h1>Maori Dictionary</h1>
+        <h2>{% block pageheading %}{% endblock %}</h2>
+    </header>
+
+    <main>
+        {% block main %}
+        {% endblock %}
+    </main>
+</div>
+</body>
+</html>
