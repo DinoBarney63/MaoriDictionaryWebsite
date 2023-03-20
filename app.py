@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MDW.db"  # School Computer
-# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MDW.db"  # Home Laptop
+DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -35,6 +35,11 @@ def is_logged_in():
 @app.route('/')
 def render_home():
     return render_template('home.html', logged_in=is_logged_in())
+
+
+@app.route('/wordlist')
+def render_wordlist():
+    return render_template('wordlist.html', logged_in=is_logged_in())
 
 
 @app.route('/login', methods=['POST', 'GET'])

@@ -16,6 +16,7 @@
         </div>
         <div class="navbar-links">
             <a href="/">Home</a>
+            <a href="/wordlist">Words</a>
             {% if logged_in %}
                 <a href="/logout">logout</a>
                 {% else %}
@@ -26,7 +27,7 @@
 </nav>
 <div class="container">
     <header>
-        <h2>{% block pageheading %}{% endblock %}</h2>
+        <h1>{% block pageheading %}{% endblock %}</h1>
     </header>
 
     <main>
