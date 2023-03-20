@@ -11,15 +11,13 @@
 <body>
 <nav>
     <div class="container">
-        <div class="navbar-brand">smile.</div>
+        <div class="navbar-brand">
+            <a href="/">Maori Dictionary</a>
+        </div>
         <div class="navbar-links">
-            <a href="/">home</a>
-            <a href="/menu/0">menu</a>
+            <a href="/">Home</a>
             {% if logged_in %}
                 <a href="/logout">logout</a>
-                {% if admin %}
-                    <a href="/admin">admin</a>
-                {% endif %}
                 {% else %}
                 <a href="/login">login</a>
             {% endif %}
@@ -28,7 +26,6 @@
 </nav>
 <div class="container">
     <header>
-        <h1>Maori Dictionary</h1>
         <h2>{% block pageheading %}{% endblock %}</h2>
     </header>
 
