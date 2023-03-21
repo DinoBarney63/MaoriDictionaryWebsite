@@ -32,25 +32,35 @@ def is_logged_in():
         return True
 
 
+def is_admin():
+    if is_logged_in():
+        if session.get('role') == "Teacher" or session.get('role') == "Admin":
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
 @app.route('/')
 def render_home():
-    return render_template('home.html', logged_in=is_logged_in())
+    return render_template('home.html', logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/wordlist')
 def render_wordlist():
-    return render_template('wordlist.html', logged_in=is_logged_in())
+    return render_template('wordlist.html', logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def render_login():
     if is_logged_in():
-        return redirect('/menu/0')
+        return redirect('/')
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
         con = create_connection(DATABASE)
-        query = """SELECT id, first_name, password FROM user WHERE email = ?"""
+        query = """SELECT id, first_name, password, role FROM user WHERE email = ?"""
         cur = con.cursor()
         cur.execute(query, (email,))
         user_data = cur.fetchone()
@@ -61,6 +71,7 @@ def render_login():
             user_id = user_data[0]
             first_name = user_data[1]
             db_password = user_data[2]
+            role = user_data[3]
         except IndexError:
             return redirect("/login?error=Email+invalid+or+password+incorrect")
 
@@ -70,10 +81,16 @@ def render_login():
         session['email'] = email
         session['userid'] = user_id
         session['firstname'] = first_name
+        session['role'] = role
+
+        email_parts = email.split('.')
+        if "school" in email_parts:
+            if role == "User":
+                redirect('render_confirm_school_role')
 
         return redirect('/')
 
-    return render_template('login.html', logged_in=is_logged_in())
+    return render_template('login.html', logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/logout')
@@ -85,7 +102,7 @@ def logout():
 @app.route('/signup', methods=['POST', 'GET'])
 def render_signup():
     if is_logged_in():
-        return redirect('/menu/0')
+        return redirect('/')
     if request.method == 'POST':
         first_name = request.form.get('first_name').title().strip()
         last_name = request.form.get('last_name').title().strip()
@@ -101,11 +118,11 @@ def render_signup():
 
         hashed_password = bcrypt.generate_password_hash(password)
         con = create_connection(DATABASE)
-        query = "INSERT INTO user (first_name, last_name, email, password, is_admin) VALUES (?, ?, ?, ?, ?)"
+        query = "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)"
         cur = con.cursor()
 
         try:
-            cur.execute(query, (first_name, last_name, email, hashed_password, "0"))
+            cur.execute(query, (first_name, last_name, email, hashed_password, "User"))
         except sqlite3.IntegrityError:
             con.close()
             return redirect('\signup?error=Email+is+already+used')
@@ -113,9 +130,50 @@ def render_signup():
         con.commit()
         con.close()
 
-        return redirect("login")
+        return redirect('login')
 
-    return render_template('signup.html', logged_in=is_logged_in())
+    return render_template('signup.html', logged_in=is_logged_in(), admin=is_admin())
+
+
+# Try make it activate this after signing up as well as after logging in
+@app.route('/confirm_school_role/<user_id>')
+def render_confirm_school_role(user_id):
+    con = create_connection(DATABASE)
+    query = "SELECT email, role FROM user WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (user_id, ))
+    user_info = cur.fetchall()
+    con.close()
+    email = user_info[0]
+    role = user_info[0]
+    email_parts = email.split('.')
+    if "school" in email_parts:
+        if role == "User":
+            return render_template('confirmschoolrole.html', user_id=user_id)
+    else:
+        return redirect('/')
+
+
+@app.route('/signup_student/<user_id>')
+def signup_student(user_id):
+    con = create_connection(DATABASE)
+    query = "UPDATE user SET role='Student' WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (user_id,))
+    con.commit()
+    con.close()
+    return redirect('/')
+
+
+@app.route('/signup_teacher/<user_id>')
+def signup_teacher(user_id):
+    con = create_connection(DATABASE)
+    query = "UPDATE user SET role='Teacher' WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (user_id,))
+    con.commit()
+    con.close()
+    return redirect('/')
 
 
 app.run()  # Runs app normally
