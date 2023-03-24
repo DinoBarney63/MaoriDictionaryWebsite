@@ -49,7 +49,24 @@ def render_home():
 
 @app.route('/wordlist')
 def render_wordlist():
-    return render_template('wordlist.html', logged_in=is_logged_in(), admin=is_admin())
+    con = create_connection(DATABASE)
+    query = "SELECT id, maori_word, english_word, category, level FROM vocab_list"
+    cur = con.cursor()
+    cur.execute(query, )
+    word_list = cur.fetchall()
+    con.close()
+    return render_template('wordlist.html', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list)
+
+
+@app.route('/individualword/<word_id>')
+def render_individual_word(word_id):
+    con = create_connection(DATABASE)
+    query = "SELECT * FROM vocab_list WHERE word_id = ?"
+    cur = con.cursor()
+    cur.execute(query, (word_id, ))
+    word_info = cur.fetchall()
+    con.close()
+    return render_template('wordlist.html', logged_in=is_logged_in(), admin=is_admin(), word_infomation=word_info)
 
 
 @app.route('/login', methods=['POST', 'GET'])
