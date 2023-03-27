@@ -50,7 +50,7 @@ def render_home():
 @app.route('/wordlist')
 def render_wordlist():
     con = create_connection(DATABASE)
-    query = "SELECT id, maori_word, english_word, category, level FROM vocab_list"
+    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
     cur = con.cursor()
     cur.execute(query, )
     word_list = cur.fetchall()
@@ -61,12 +61,13 @@ def render_wordlist():
 @app.route('/individualword/<word_id>')
 def render_individual_word(word_id):
     con = create_connection(DATABASE)
-    query = "SELECT * FROM vocab_list WHERE word_id = ?"
+    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur = con.cursor()
     cur.execute(query, (word_id, ))
     word_info = cur.fetchall()
     con.close()
-    return render_template('wordlist.html', logged_in=is_logged_in(), admin=is_admin(), word_infomation=word_info)
+    print(word_info)
+    return render_template('worddetail.html', logged_in=is_logged_in(), admin=is_admin(), word_infomation=word_info)
 
 
 @app.route('/login', methods=['POST', 'GET'])

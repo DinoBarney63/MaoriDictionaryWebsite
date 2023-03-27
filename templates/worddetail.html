@@ -1,7 +1,32 @@
 {% extends "base.html" %}
 
-{% block pageheading %}'Word name'{% endblock %}
+{% block pageheading %}{{ word_infomation[0][1] }}{% endblock %}
 
 {% block main %}
-<strong><em>Here is where information of the selected word will go</em></strong>
+<table>
+    <tr>
+        <td>Maori Word</td>
+        <td>English Translation</td>
+        <td>Category</td>
+        <td>Level</td>
+    </tr>
+    <tr>
+        <td>{{ word_infomation[0][1] }}</td>
+        <td>{{ word_infomation[0][2] }}</td>
+        <td>{{ word_infomation[0][3] }}</td>
+        <td>{{ word_infomation[0][5] }}</td>
+    </tr>
+    <tr>
+        <td colspan="4">Definition</td>
+    </tr>
+    <tr>
+        <td colspan="4">{{ word_infomation[0][4] }}</td>
+    </tr>
+    <tr>
+        <td>Last Edited Time</td>
+        <td>{{ word_infomation[0][6] }}</td>
+        <td>Last Edited User</td>
+        <td>{{ word_infomation[0][7] }}</td>
+    </tr>
+</table>
 {% endblock %}

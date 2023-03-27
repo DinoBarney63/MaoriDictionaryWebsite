@@ -3,22 +3,20 @@
 {% block pageheading %}Words...{% endblock %}
 
 {% block main %}
-<strong><em>Here is where the words will go</em></strong>
 <table id="wordlist">
   <tr>
-    <th>English Word</th>
     <th>Maori Word</th>
+    <th>English Translation</th>
     <th>Level</th>
+    <th>Category</th>
   </tr>
-  <tr>
-    <td>Hello</td>
-    <td>Kia Ora</td>
-    <td>1</td>
-  </tr>
-  <tr>
-    <td>Goodbye</td>
-    <td>Ka kite</td>
-    <td>1</td>
-  </tr>
+  {% for word in word_list %}
+    <tr>
+      <td><a href="individualword/{{ word[0] }}">{{ word[1] }}</a></td>
+      <td>{{ word[2] }}</td>
+      <td>{{ word[4] }}</td>
+      <td>{{ word[3] }}</td>
+    </tr>
+  {% endfor %}
 </table>
 {% endblock %}

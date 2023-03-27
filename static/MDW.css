@@ -113,7 +113,7 @@ nav a:hover {
     width: 100%;
 }
 
-#wordlist {
+table {
   font-family: Arial, Helvetica, sans-serif;
   border-collapse: collapse;
   width: 100%;
