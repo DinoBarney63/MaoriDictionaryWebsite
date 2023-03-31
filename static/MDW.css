@@ -26,7 +26,7 @@ img {
 
 h1 {
     text-align: center;
-    font-weight: 200;
+    font-weight: bold;
     font-size: 2rem;
     margin: 0;
 }
@@ -119,7 +119,7 @@ table {
   width: 100%;
 }
 
-#wordlist td, #wordlist th {
+td, th {
   border: 1px solid #b4b4b4;
   padding: 8px;
 }
@@ -128,10 +128,10 @@ table {
 
 #wordlist tr:hover {background-color: #ddd;}
 
-#wordlist th {
+#wordlist th, #wordinfomation .header {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
-  background-color: #323232;
+  background-color: #646464;
   color: white;
 }

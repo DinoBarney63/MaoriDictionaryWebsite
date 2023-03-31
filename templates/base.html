@@ -18,12 +18,12 @@
             <a href="/">Home</a>
             <a href="/wordlist">Words</a>
             {% if logged_in %}
-                {% if logged_in %}
-                    <a href="/">admin</a>
+                {% if admin %}
+                    <a href="/">Admin</a>
                 {% endif %}
-                <a href="/logout">logout</a>
+                <a href="/logout">Logout</a>
                 {% else %}
-                <a href="/login">login</a>
+                <a href="/login">Login</a>
             {% endif %}
         </div>
     </div>

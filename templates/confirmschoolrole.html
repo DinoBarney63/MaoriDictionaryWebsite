@@ -4,5 +4,5 @@
 
 {% block main %}
   <h2>Since you are in a school</h2>
-  <h3>Are you a <a href="/signup_student">Student</a> or a <a href="/signup_teacher">Teacher</a>?</h3>
+  <h3>Are you a <a href="/signup_student/{{ user_id }}">Student</a> or a <a href="/signup_teacher/{{ user_id }}">Teacher</a>?</h3>
 {% endblock %}

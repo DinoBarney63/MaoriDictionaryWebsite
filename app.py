@@ -42,8 +42,21 @@ def is_admin():
         return False
 
 
+def in_school():
+    if is_logged_in():
+        email_parts = session.get('email').split('.')
+        if "school" in email_parts:
+            return True
+    else:
+        return False
+
+
 @app.route('/')
 def render_home():
+    if in_school():
+        if session['role'] == 'User':
+            return redirect('/confirm_school_role/' + str(session['userid']))
+
     return render_template('home.html', logged_in=is_logged_in(), admin=is_admin())
 
 
@@ -66,7 +79,6 @@ def render_individual_word(word_id):
     cur.execute(query, (word_id, ))
     word_info = cur.fetchall()
     con.close()
-    print(word_info)
     return render_template('worddetail.html', logged_in=is_logged_in(), admin=is_admin(), word_infomation=word_info)
 
 
@@ -101,11 +113,6 @@ def render_login():
         session['firstname'] = first_name
         session['role'] = role
 
-        email_parts = email.split('.')
-        if "school" in email_parts:
-            if role == "User":
-                redirect('render_confirm_school_role')
-
         return redirect('/')
 
     return render_template('login.html', logged_in=is_logged_in(), admin=is_admin())
@@ -129,10 +136,10 @@ def render_signup():
         password2 = request.form.get('password2')
 
         if password != password2:
-            return redirect("\signup?error=Passwords+do+not+match")
+            return redirect("/signup?error=Passwords+do+not+match")
 
         if len(password) < 8:
-            return redirect("\signup?error=Passwords+must+be+at+least+8+characters")
+            return redirect("/signup?error=Passwords+must+be+at+least+8+characters")
 
         hashed_password = bcrypt.generate_password_hash(password)
         con = create_connection(DATABASE)
@@ -143,7 +150,7 @@ def render_signup():
             cur.execute(query, (first_name, last_name, email, hashed_password, "User"))
         except sqlite3.IntegrityError:
             con.close()
-            return redirect('\signup?error=Email+is+already+used')
+            return redirect('/signup?error=Email+is+already+used')
 
         con.commit()
         con.close()
@@ -156,20 +163,9 @@ def render_signup():
 # Try make it activate this after signing up as well as after logging in
 @app.route('/confirm_school_role/<user_id>')
 def render_confirm_school_role(user_id):
-    con = create_connection(DATABASE)
-    query = "SELECT email, role FROM user WHERE id = ?"
-    cur = con.cursor()
-    cur.execute(query, (user_id, ))
-    user_info = cur.fetchall()
-    con.close()
-    email = user_info[0]
-    role = user_info[0]
-    email_parts = email.split('.')
-    if "school" in email_parts:
-        if role == "User":
-            return render_template('confirmschoolrole.html', user_id=user_id)
-    else:
+    if not in_school():
         return redirect('/')
+    return render_template('confirmschoolrole.html', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/signup_student/<user_id>')
@@ -180,6 +176,7 @@ def signup_student(user_id):
     cur.execute(query, (user_id,))
     con.commit()
     con.close()
+    session['role'] = 'Student'
     return redirect('/')
 
 
@@ -191,6 +188,7 @@ def signup_teacher(user_id):
     cur.execute(query, (user_id,))
     con.commit()
     con.close()
+    session['role'] = 'Teacher'
     return redirect('/')
 
 

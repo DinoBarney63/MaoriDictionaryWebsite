@@ -3,12 +3,12 @@
 {% block pageheading %}{{ word_infomation[0][1] }}{% endblock %}
 
 {% block main %}
-<table>
-    <tr>
-        <td>Maori Word</td>
-        <td>English Translation</td>
-        <td>Category</td>
-        <td>Level</td>
+<table id="wordinfomation">
+    <tr class="header">
+        <td style="width:25%">Maori Word</td>
+        <td style="width:25%">English Translation</td>
+        <td style="width:25%">Category</td>
+        <td style="width:25%">Level</td>
     </tr>
     <tr>
         <td>{{ word_infomation[0][1] }}</td>
@@ -16,16 +16,16 @@
         <td>{{ word_infomation[0][3] }}</td>
         <td>{{ word_infomation[0][5] }}</td>
     </tr>
-    <tr>
+    <tr class="header">
         <td colspan="4">Definition</td>
     </tr>
     <tr>
         <td colspan="4">{{ word_infomation[0][4] }}</td>
     </tr>
     <tr>
-        <td>Last Edited Time</td>
+        <td class="header">Last Edited Time</td>
         <td>{{ word_infomation[0][6] }}</td>
-        <td>Last Edited User</td>
+        <td class="header">Last Edited User</td>
         <td>{{ word_infomation[0][7] }}</td>
     </tr>
 </table>
