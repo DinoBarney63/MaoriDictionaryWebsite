@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block pageheading %}{{ word_information[0][1] }}{% endblock %}
+
+{% block main %}
+<table id="wordinfomation">
+    <tr class="header">
+        <td style="width:25%">Maori Word</td>
+        <td style="width:25%">English Translation</td>
+        <td style="width:25%">Category</td>
+        <td style="width:25%">Level</td>
+    </tr>
+    <tr>
+        <td>{{ word_information[0][1] }}</td>
+        <td>{{ word_information[0][2] }}</td>
+        <td>{{ word_information[0][3] }}</td>
+        <td>{{ word_information[0][5] }}</td>
+    </tr>
+    <tr class="header">
+        <td colspan="4">Definition</td>
+    </tr>
+    <tr>
+        <td colspan="4">{{ word_information[0][4] }}</td>
+    </tr>
+    <tr>
+        <td class="header">Last Edited Time</td>
+        <td>{{ word_information[0][6] }}</td>
+        <td class="header">Last Edited User</td>
+        <td>{{ word_information[0][7] }}</td>
+    </tr>
+    {% if admin %}
+        <tr>
+            <td colspan="4"><a href="edit/{{ word_information[0][0] }}">Edit Word Information</a></td>
+        </tr>
+    {% endif %}
+</table>
+{% endblock %}

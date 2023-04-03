@@ -60,18 +60,18 @@ def render_home():
     return render_template('home.html', logged_in=is_logged_in(), admin=is_admin())
 
 
-@app.route('/wordlist')
-def render_wordlist():
+@app.route('/word_list')
+def render_word_list():
     con = create_connection(DATABASE)
     query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
     cur = con.cursor()
     cur.execute(query, )
     word_list = cur.fetchall()
     con.close()
-    return render_template('wordlist.html', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list)
+    return render_template('word_list.html', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list)
 
 
-@app.route('/individualword/<word_id>')
+@app.route('/individual_word/<word_id>')
 def render_individual_word(word_id):
     con = create_connection(DATABASE)
     query = "SELECT * FROM vocab_list WHERE id = ?"
@@ -79,7 +79,35 @@ def render_individual_word(word_id):
     cur.execute(query, (word_id, ))
     word_info = cur.fetchall()
     con.close()
-    return render_template('worddetail.html', logged_in=is_logged_in(), admin=is_admin(), word_infomation=word_info)
+    return render_template('word_detail.html', logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
+
+
+@app.route('/individual_word/edit/<word_id>', methods=['POST', 'GET'])
+def render_edit_word_information(word_id):
+    if not is_admin():
+        return redirect('/individual_word/' + word_id)
+    if request.method == 'POST':
+        maori_word = request.form.get('maori_word').title().strip()
+        english_translation = request.form.get('english_translation').title().strip()
+        category = request.form.get('category').title().strip()
+        definition = request.form.get('definition').capitalize().strip()
+        level = request.form.get('level').strip()
+        last_edited_time = "123"
+        last_edited_user = session['firstname'] + session['lastname']
+        con = create_connection(DATABASE)
+        query = "UPDATE vocab_list SET (maori_word, english_translation, category, definition, level, last_edited_time, last_edited_user) WHERE id = ?"
+        cur = con.cursor()
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_time, last_edited_user, word_id))
+        con.commit()
+        con.close()
+
+    con = create_connection(DATABASE)
+    query = "SELECT * FROM vocab_list WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (word_id, ))
+    word_info = cur.fetchall()
+    con.close()
+    return render_template('edit_word_information.html', logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -90,7 +118,7 @@ def render_login():
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
         con = create_connection(DATABASE)
-        query = """SELECT id, first_name, password, role FROM user WHERE email = ?"""
+        query = """SELECT id, first_name, last_name, password, role FROM user WHERE email = ?"""
         cur = con.cursor()
         cur.execute(query, (email,))
         user_data = cur.fetchone()
@@ -100,8 +128,9 @@ def render_login():
         try:
             user_id = user_data[0]
             first_name = user_data[1]
-            db_password = user_data[2]
-            role = user_data[3]
+            last_name = user_data[2]
+            db_password = user_data[3]
+            role = user_data[4]
         except IndexError:
             return redirect("/login?error=Email+invalid+or+password+incorrect")
 
@@ -111,6 +140,7 @@ def render_login():
         session['email'] = email
         session['userid'] = user_id
         session['firstname'] = first_name
+        session['lastname'] = last_name
         session['role'] = role
 
         return redirect('/')
@@ -165,7 +195,7 @@ def render_signup():
 def render_confirm_school_role(user_id):
     if not in_school():
         return redirect('/')
-    return render_template('confirmschoolrole.html', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
+    return render_template('confirm_school_role.html', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/signup_student/<user_id>')

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block pageheading %}Edit {{ word_information[0][1] }}{% endblock %}
+
+{% block main %}
+<form class="my-form" method="POST">
+  <div class="form-group">
+    <div class="form-label">Maori Word:</div>
+    <div class="form-element"><input type="text" name="maori_word" id="maori_word" value="{{ word_information[0][1] }}" required></div>
+  </div>
+  <div class="error">{{maori_word_error}}</div>
+  <div class="form-group">
+    <div class="form-label">English Translation:</div>
+    <div class="form-element"><input type="text" name="english_translation" id="english_translation" value="{{ word_information[0][2] }}" required></div>
+  </div>
+  <div class="error">{{english_translation_error}}</div>
+  <div class="form-group">
+    <div class="form-label">Category:</div>
+    <div class="form-element"><input type="text" name="category" id="category" value="{{ word_information[0][3] }}" required></div>
+  </div>
+  <div class="form-group">
+    <div class="form-label">Definition:</div>
+    <div class="form-element"><input type="text" name="definition" id="definition" value="{{ word_information[0][4] }}" required></div>
+  </div>
+  <div class="form-group">
+    <div class="form-label">Level:</div>
+    <div class="form-element"><input type="number" name="level" id="level" value="{{ word_information[0][5] }}" required></div>
+  </div>
+  <div class="form-group">
+    <div class="form-label"></div>
+    <div class="form-element"><input type="submit" value="Change Word Information"></div>
+  </div>
+</form>
+{% endblock %}
