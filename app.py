@@ -92,24 +92,28 @@ def render_edit_word_information(word_id):
         category = request.form.get('category').title().strip()
         definition = request.form.get('definition').capitalize().strip()
         level = request.form.get('level').strip()
-        image_link = request.form.get('image_link').lower().strip()
         last_edited_time = "123"
         last_edited_user = session['firstname'] + " " + session['lastname']
-        print(maori_word, english_translation, category, definition, level, image_link, last_edited_time, last_edited_user)
+        image_name = request.form.get('image_name').lower().strip()
+        if image_name == "":
+            image_name = "none"
+
         con = create_connection(DATABASE)
-        query = "UPDATE vocab_list SET (maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, image_link = ?, last_edited_time = ?, last_edited_user = ?) WHERE id = ?"
+        query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = ?, last_edited_user = ?, image_name = ? WHERE id = ?"
         cur = con.cursor()
-        cur.execute(query, (maori_word, english_translation, category, definition, level, image_link, last_edited_time, last_edited_user, word_id))
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_time, last_edited_user, image_name, word_id))
         con.commit()
         con.close()
-        redirect('/individual_word/' + word_id)
+        return redirect('/individual_word/' + word_id)
 
+    # Get word information
     con = create_connection(DATABASE)
     query = "SELECT * FROM vocab_list WHERE id = ?"
     cur = con.cursor()
-    cur.execute(query, (word_id, ))
+    cur.execute(query, (word_id,))
     word_info = cur.fetchall()
     con.close()
+
     return render_template('edit_word_information.html', logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
 

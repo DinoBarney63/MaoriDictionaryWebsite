@@ -26,13 +26,15 @@
         <td colspan="4">Image</td>
     </tr>
     <tr>
-        <td colspan="4">{{ word_information[0][6] }}</td>
+        <td colspan="4">
+            <img src="/static/images/{{ word_information[0][8] }}.jpg">
+        </td>
     </tr>
     <tr>
         <td class="header">Last Edited Time</td>
-        <td>{{ word_information[0][7] }}</td>
+        <td>{{ word_information[0][6] }}</td>
         <td class="header">Last Edited User</td>
-        <td>{{ word_information[0][8] }}</td>
+        <td>{{ word_information[0][7] }}</td>
     </tr>
     {% if admin %}
         <tr>
