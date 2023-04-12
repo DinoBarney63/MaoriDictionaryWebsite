@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -57,18 +57,34 @@ def render_home():
         if session['role'] == 'User':
             return redirect('/confirm_school_role/' + str(session['userid']))
 
-    return render_template('home.html', logged_in=is_logged_in(), admin=is_admin())
+    return render_template('home.html', page_name='Home', logged_in=is_logged_in(), admin=is_admin())
 
 
-@app.route('/word_list')
-def render_word_list():
+@app.route('/word_list/<category_id>')
+def render_word_list(category_id):
     con = create_connection(DATABASE)
-    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
+    query = "SELECT id, name FROM category"
     cur = con.cursor()
-    cur.execute(query, )
-    word_list = cur.fetchall()
+    cur.execute(query)
+    category_list = cur.fetchall()
+    
+    if category_id == "0":
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
+        cur = con.cursor()
+        cur.execute(query)
+    else:
+        category = category_list[int(category_id) - 1][1]
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+        cur = con.cursor()
+        cur.execute(query, (category, ))
+    words = cur.fetchall()
     con.close()
-    return render_template('word_list.html', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list)
+    word_list = []
+    # Reformatting the words to be displayed
+    for word in words:
+        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
+        word_list.append(word)
+    return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list)
 
 
 @app.route('/individual_word/<word_id>')
@@ -77,9 +93,11 @@ def render_individual_word(word_id):
     query = "SELECT * FROM vocab_list WHERE id = ?"
     cur = con.cursor()
     cur.execute(query, (word_id, ))
-    word_info = cur.fetchall()
+    info = cur.fetchall()
     con.close()
-    return render_template('word_detail.html', logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
+    info = info[0]
+    word_info = (info[0], str(info[1]).title(), str(info[2]).title(), str(info[3]).title(), str(info[4]).capitalize(), info[5], info[6], info[7], info[8])
+    return render_template('word_detail.html', page_name='Word '+ word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
 
 @app.route('/individual_word/edit/<word_id>', methods=['POST', 'GET'])
@@ -87,10 +105,10 @@ def render_edit_word_information(word_id):
     if not is_admin():
         return redirect('/individual_word/' + word_id)
     if request.method == 'POST':
-        maori_word = request.form.get('maori_word').title().strip()
-        english_translation = request.form.get('english_translation').title().strip()
-        category = request.form.get('category').title().strip()
-        definition = request.form.get('definition').capitalize().strip()
+        maori_word = request.form.get('maori_word').lower().strip()
+        english_translation = request.form.get('english_translation').lower().strip()
+        category = request.form.get('category').lower().strip()
+        definition = request.form.get('definition').lower().strip()
         level = request.form.get('level').strip()
         last_edited_time = "123"
         last_edited_user = session['firstname'] + " " + session['lastname']
@@ -99,9 +117,9 @@ def render_edit_word_information(word_id):
             image_name = "none"
 
         con = create_connection(DATABASE)
-        query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = ?, last_edited_user = ?, image_name = ? WHERE id = ?"
+        query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
         cur = con.cursor()
-        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_time, last_edited_user, image_name, word_id))
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id))
         con.commit()
         con.close()
         return redirect('/individual_word/' + word_id)
@@ -114,7 +132,7 @@ def render_edit_word_information(word_id):
     word_info = cur.fetchall()
     con.close()
 
-    return render_template('edit_word_information.html', logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
+    return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -152,7 +170,7 @@ def render_login():
 
         return redirect('/')
 
-    return render_template('login.html', logged_in=is_logged_in(), admin=is_admin())
+    return render_template('login.html', page_name='Login', logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/logout')
@@ -194,7 +212,7 @@ def render_signup():
 
         return redirect('login')
 
-    return render_template('signup.html', logged_in=is_logged_in(), admin=is_admin())
+    return render_template('signup.html', page_name='Sign Up', logged_in=is_logged_in(), admin=is_admin())
 
 
 # Try make it activate this after signing up as well as after logging in
@@ -202,7 +220,7 @@ def render_signup():
 def render_confirm_school_role(user_id):
     if not in_school():
         return redirect('/')
-    return render_template('confirm_school_role.html', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
+    return render_template('confirm_school_role.html', page_name='Confirm', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
 
 
 @app.route('/signup_student/<user_id>')

@@ -3,6 +3,14 @@
 {% block pageheading %}Words...{% endblock %}
 
 {% block main %}
+<div class="categorylist">
+    <ul>
+        {% for category in category_list %}
+            <li class="category-item"><a href="/word_list/{{ category[0] }}">{{ category[1] }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+
 <table id="wordlist">
   <tr>
     <th style="width:40%">Maori Word</th>

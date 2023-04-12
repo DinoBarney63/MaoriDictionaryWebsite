@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Maori Dictionary | home</title>
+    <title>Maori Dictionary | {{ page_name }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css"/>
@@ -16,7 +16,7 @@
         </div>
         <div class="navbar-links">
             <a href="/">Home</a>
-            <a href="/word_list">Words</a>
+            <a href="/word_list/0">Words</a>
             {% if logged_in %}
                 {% if admin %}
                     <a href="/">Admin</a>
