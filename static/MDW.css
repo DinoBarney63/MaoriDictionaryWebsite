@@ -124,14 +124,31 @@ td, th {
   padding: 8px;
 }
 
-#wordlist tr:nth-child(even){background-color: #f2f2f2;}
+#wordlist tr:nth-child(even) {background-color: #f2f2f2;}
 
 #wordlist tr:hover {background-color: #ddd;}
 
-#wordlist th, #wordinfomation .header {
+#wordlist th, #filterlist th, #wordinfomation .header {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
   background-color: #646464;
   color: white;
+}
+
+#filterlist {
+  margin-left:-5px;
+  margin-right:-5px;
+}
+
+.column {
+  float: left;
+  width: 50%;
+  padding: 5px;
+}
+
+#filterlist::after {
+  content: "";
+  clear: both;
+  display: table;
 }

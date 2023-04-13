@@ -3,12 +3,39 @@
 {% block pageheading %}Words...{% endblock %}
 
 {% block main %}
-<div class="categorylist">
-    <ul>
-        {% for category in category_list %}
-            <li class="category-item"><a href="/word_list/{{ category[0] }}">{{ category[1] }}</a></li>
-        {% endfor %}
-    </ul>
+<div id="filterlist">
+    <div class="column">
+        <table>
+            <tr>
+                <td>
+                    <a href="/word_list/0_{{ current_level }}">all categories</a>
+                </td>
+            </tr>
+            {% for category in category_list %}
+                <tr>
+                    <td>
+                        <a href="/word_list/{{ category[0] }}_{{ current_level }}">{{ category[1] }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="column">
+        <table>
+            <tr>
+                <td>
+                    <a href="/word_list/{{ current_category }}_0">all levels</a>
+                </td>
+            </tr>
+            {% for level in level_list %}
+                <tr>
+                    <td>
+                        <a href="/word_list/{{ current_category }}_{{ level[0] }}">{{ level[1] }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 </div>
 
 <table id="wordlist">
@@ -20,7 +47,7 @@
   </tr>
   {% for word in word_list %}
     <tr>
-      <td><a href="individual_word/{{ word[0] }}">{{ word[1] }}</a></td>
+      <td><a href="/individual_word/{{ word[0] }}">{{ word[1] }}</a></td>
       <td>{{ word[2] }}</td>
       <td>{{ word[4] }}</td>
       <td>{{ word[3] }}</td>

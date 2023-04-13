@@ -60,23 +60,38 @@ def render_home():
     return render_template('home.html', page_name='Home', logged_in=is_logged_in(), admin=is_admin())
 
 
-@app.route('/word_list/<category_id>')
-def render_word_list(category_id):
+@app.route('/word_list/<category_id>_<level_id>')
+def render_word_list(category_id, level_id):
     con = create_connection(DATABASE)
     query = "SELECT id, name FROM category"
     cur = con.cursor()
     cur.execute(query)
     category_list = cur.fetchall()
-    
-    if category_id == "0":
+    query = "SELECT id, number FROM level"
+    cur = con.cursor()
+    cur.execute(query)
+    level_list = cur.fetchall()
+    # If there is no filter then we select all the words otherwise we select those with the filter
+    if category_id == "0" and level_id == "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
         cur = con.cursor()
         cur.execute(query)
-    else:
+    elif category_id != "0" and level_id == "0":
         category = category_list[int(category_id) - 1][1]
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
         cur = con.cursor()
         cur.execute(query, (category, ))
+    elif category_id == "0" and level_id != "0":
+        level = int(level_id)
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE level=?"
+        cur = con.cursor()
+        cur.execute(query, (level, ))
+    else:
+        category = category_list[int(category_id) - 1][1]
+        level = int(level_id)
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"
+        cur = con.cursor()
+        cur.execute(query, (category, level))
     words = cur.fetchall()
     con.close()
     word_list = []
@@ -84,7 +99,7 @@ def render_word_list(category_id):
     for word in words:
         word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
         word_list.append(word)
-    return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list)
+    return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, current_category=category_id, current_level=level_id)
 
 
 @app.route('/individual_word/<word_id>')
@@ -96,6 +111,7 @@ def render_individual_word(word_id):
     info = cur.fetchall()
     con.close()
     info = info[0]
+    # Reformatting the word to be displayed
     word_info = (info[0], str(info[1]).title(), str(info[2]).title(), str(info[3]).title(), str(info[4]).capitalize(), info[5], info[6], info[7], info[8])
     return render_template('word_detail.html', page_name='Word '+ word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
@@ -105,12 +121,12 @@ def render_edit_word_information(word_id):
     if not is_admin():
         return redirect('/individual_word/' + word_id)
     if request.method == 'POST':
+        # Reformat the word to all lowercase
         maori_word = request.form.get('maori_word').lower().strip()
         english_translation = request.form.get('english_translation').lower().strip()
         category = request.form.get('category').lower().strip()
         definition = request.form.get('definition').lower().strip()
         level = request.form.get('level').strip()
-        last_edited_time = "123"
         last_edited_user = session['firstname'] + " " + session['lastname']
         image_name = request.form.get('image_name').lower().strip()
         if image_name == "":
@@ -131,8 +147,39 @@ def render_edit_word_information(word_id):
     cur.execute(query, (word_id,))
     word_info = cur.fetchall()
     con.close()
-
+    word_info = word_info[0]
     return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
+
+
+@app.route('/individual_word/delete_word/<word_id>')
+def render_delete_word(word_id):
+    if not is_admin():
+        return redirect('/individual_word/' + word_id)
+
+    # Get word information
+    con = create_connection(DATABASE)
+    query = "SELECT * FROM vocab_list WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (word_id,))
+    word_info = cur.fetchall()
+    con.close()
+    word_info = word_info[0]
+    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info, type='word')
+
+
+@app.route('/individual_word/delete_word_confirm/<word_id>')
+def delete_word_confirm(word_id):
+    if not is_admin():
+        return redirect('/individual_word/' + word_id)
+
+    con = create_connection(DATABASE)
+    query = "DELETE FROM vocab_list WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (word_id,))
+    con.commit()
+    con.close()
+
+    return redirect("/word_list/0_0")
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -215,7 +262,7 @@ def render_signup():
     return render_template('signup.html', page_name='Sign Up', logged_in=is_logged_in(), admin=is_admin())
 
 
-# Try make it activate this after signing up as well as after logging in
+# This occurs if the user has a school email but hasn't become a student or teacher user
 @app.route('/confirm_school_role/<user_id>')
 def render_confirm_school_role(user_id):
     if not in_school():
