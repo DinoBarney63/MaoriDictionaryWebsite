@@ -39,7 +39,7 @@ h2 {
 
 h3, h4{
     text-align: center;
-    margin: 2rem 0 0.5rem 0;
+    margin: 1.5rem 0 0.5rem 0;
 }
 
 nav {
@@ -108,9 +108,38 @@ nav a:hover {
     padding: 0.3rem;
 }
 
-.form-group input {
+.form-group input, .form-group select {
     padding: 0.3rem;
     width: 100%;
+    height: 35px;
+}
+
+.collapsible_header{
+  background-color: #646464;
+  color: white;
+  padding: 10px;
+}
+
+.collapsible {
+  background-color: #f2f2f2;
+  cursor: pointer;
+  padding-bottom: 5px;
+  width: 100%;
+  outline: none;
+  border: none;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.active, .collapsible:hover {
+  background-color: #dddddd;
+}
+
+.content {
+  padding: 10px;
+  display: none;
+  overflow: hidden;
+  background-color: #f1f1f1;
 }
 
 table {
@@ -126,7 +155,7 @@ td, th {
 
 #wordlist tr:nth-child(even) {background-color: #f2f2f2;}
 
-#wordlist tr:hover {background-color: #ddd;}
+#wordlist tr:hover {background-color: #dddddd;}
 
 #wordlist th, #filterlist th, #wordinfomation .header {
   padding-top: 12px;

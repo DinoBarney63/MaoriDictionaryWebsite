@@ -16,7 +16,17 @@
   <div class="error">{{english_translation_error}}</div>
   <div class="form-group">
     <div class="form-label">Category:</div>
-    <div class="form-element"><input type="text" name="category" id="category" value="{{ word_information[3] }}" required></div>
+    <div class="form-element">
+      <select id="category" name="category">
+        {% for category in category_list %}
+          {% if category[1] == word_information[3] %}
+            <option selected="selected">{{ category[1] }}</option>
+          {% else %}
+            <option>{{ category[1] }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
   </div>
   <div class="form-group">
     <div class="form-label">Definition:</div>
@@ -24,7 +34,17 @@
   </div>
   <div class="form-group">
     <div class="form-label">Level:</div>
-    <div class="form-element"><input type="number" name="level" id="level" value="{{ word_information[5] }}" required></div>
+    <div class="form-element">
+      <select id="level" name="level">
+        {% for level in level_list %}
+          {% if level[1] == word_information[5] %}
+            <option selected="selected">{{ level[1] }}</option>
+          {% else %}
+            <option>{{ level[1] }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
   </div>
   <div class="form-group">
     <div class="form-label">Image Name:</div>

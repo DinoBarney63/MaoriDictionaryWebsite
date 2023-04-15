@@ -63,34 +63,28 @@ def render_home():
 @app.route('/word_list/<category_id>_<level_id>')
 def render_word_list(category_id, level_id):
     con = create_connection(DATABASE)
-    query = "SELECT id, name FROM category"
     cur = con.cursor()
+    query = "SELECT id, name FROM category"
     cur.execute(query)
     category_list = cur.fetchall()
     query = "SELECT id, number FROM level"
-    cur = con.cursor()
     cur.execute(query)
     level_list = cur.fetchall()
+
+    category = category_list[int(category_id) - 1][1]
+    level = int(level_id)
     # If there is no filter then we select all the words otherwise we select those with the filter
     if category_id == "0" and level_id == "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
-        cur = con.cursor()
         cur.execute(query)
     elif category_id != "0" and level_id == "0":
-        category = category_list[int(category_id) - 1][1]
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
-        cur = con.cursor()
         cur.execute(query, (category, ))
     elif category_id == "0" and level_id != "0":
-        level = int(level_id)
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE level=?"
-        cur = con.cursor()
         cur.execute(query, (level, ))
     else:
-        category = category_list[int(category_id) - 1][1]
-        level = int(level_id)
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"
-        cur = con.cursor()
         cur.execute(query, (category, level))
     words = cur.fetchall()
     con.close()
@@ -105,8 +99,9 @@ def render_word_list(category_id, level_id):
 @app.route('/individual_word/<word_id>')
 def render_individual_word(word_id):
     con = create_connection(DATABASE)
-    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur = con.cursor()
+    # Get word info
+    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur.execute(query, (word_id, ))
     info = cur.fetchall()
     con.close()
@@ -133,22 +128,30 @@ def render_edit_word_information(word_id):
             image_name = "none"
 
         con = create_connection(DATABASE)
-        query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
         cur = con.cursor()
+        query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
         cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id))
         con.commit()
         con.close()
         return redirect('/individual_word/' + word_id)
 
-    # Get word information
     con = create_connection(DATABASE)
-    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur = con.cursor()
+    # Get word information
+    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur.execute(query, (word_id,))
     word_info = cur.fetchall()
+    # Get categories
+    query = "SELECT * FROM category"
+    cur.execute(query)
+    category_list = cur.fetchall()
+    # Get levels
+    query = "SELECT * FROM level"
+    cur.execute(query)
+    level_list = cur.fetchall()
     con.close()
     word_info = word_info[0]
-    return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
+    return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info, category_list=category_list, level_list=level_list)
 
 
 @app.route('/individual_word/delete_word/<word_id>')
@@ -158,8 +161,8 @@ def render_delete_word(word_id):
 
     # Get word information
     con = create_connection(DATABASE)
-    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur = con.cursor()
+    query = "SELECT * FROM vocab_list WHERE id = ?"
     cur.execute(query, (word_id,))
     word_info = cur.fetchall()
     con.close()
@@ -173,13 +176,54 @@ def delete_word_confirm(word_id):
         return redirect('/individual_word/' + word_id)
 
     con = create_connection(DATABASE)
-    query = "DELETE FROM vocab_list WHERE id = ?"
     cur = con.cursor()
+    query = "DELETE FROM vocab_list WHERE id = ?"
     cur.execute(query, (word_id,))
     con.commit()
     con.close()
 
     return redirect("/word_list/0_0")
+
+
+
+@app.route('/admin')
+def render_admin():
+    if not is_admin():
+        return redirect('/')
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
+    cur.execute(query)
+    words = cur.fetchall()
+    query = "SELECT * FROM category"
+    cur.execute(query)
+    categories = cur.fetchall()
+    query = "SELECT * FROM level"
+    cur.execute(query)
+    levels = cur.fetchall()
+    query = "SELECT * FROM user"
+    cur.execute(query)
+    user_list = cur.fetchall()
+    con.close()
+    
+    # Reformatting the words to be displayed
+    word_list = []
+    for word in words:
+        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
+        word_list.append(word)
+    # Reformatting the categories to be displayed
+    category_list = []
+    for category in categories:
+        category = (category[0], str(category[1]).title())
+        category_list.append(category)
+    # Reformatting the levels to be displayed
+    level_list = []
+    for level in levels:
+        level = (level[0], str(level[1]).title())
+        level_list.append(level)
+
+    return render_template("admin.html", page_name='Admin', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, user_list=user_list)
+    
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -190,8 +234,8 @@ def render_login():
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
         con = create_connection(DATABASE)
-        query = """SELECT id, first_name, last_name, password, role FROM user WHERE email = ?"""
         cur = con.cursor()
+        query = """SELECT id, first_name, last_name, password, role FROM user WHERE email = ?"""
         cur.execute(query, (email,))
         user_data = cur.fetchone()
         con.close()
@@ -245,8 +289,8 @@ def render_signup():
 
         hashed_password = bcrypt.generate_password_hash(password)
         con = create_connection(DATABASE)
-        query = "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)"
         cur = con.cursor()
+        query = "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)"
 
         try:
             cur.execute(query, (first_name, last_name, email, hashed_password, "User"))
@@ -273,8 +317,8 @@ def render_confirm_school_role(user_id):
 @app.route('/signup_student/<user_id>')
 def signup_student(user_id):
     con = create_connection(DATABASE)
-    query = "UPDATE user SET role='Student' WHERE id = ?"
     cur = con.cursor()
+    query = "UPDATE user SET role='Student' WHERE id = ?"
     cur.execute(query, (user_id,))
     con.commit()
     con.close()
@@ -285,8 +329,8 @@ def signup_student(user_id):
 @app.route('/signup_teacher/<user_id>')
 def signup_teacher(user_id):
     con = create_connection(DATABASE)
-    query = "UPDATE user SET role='Teacher' WHERE id = ?"
     cur = con.cursor()
+    query = "UPDATE user SET role='Teacher' WHERE id = ?"
     cur.execute(query, (user_id,))
     con.commit()
     con.close()

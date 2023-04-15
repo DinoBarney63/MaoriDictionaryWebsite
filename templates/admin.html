@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block pageheading %}Administration{% endblock %}
+
+{% block main %}
+<div class="container">
+  <h3 class="collapsible_header">Word Admin</h3>
+  <button type="button" class="collapsible"><h4>Add a Word</h4></button>
+  <div class="content">
+    <p>This is where adding words will go</p>
+  </div>
+  <button type="button" class="collapsible"><h4>Edit / Delete a Word</h4></button>
+  <div class="content">
+    <p>Redirect to edit individual word</p>
+    <p>Or put the same thing here</p>
+  </div>
+</div>
+
+<div class="container">
+  <h3 class="collapsible_header">Category Admin</h3>
+  <button type="button" class="collapsible"><h4>Add a Category</h4></button>
+  <div class="content">
+    <p>This is where adding categories will go</p>
+  </div>
+  <button type="button" class="collapsible"><h4>Edit / Delete a Category</h4></button>
+  <div class="content">
+    <p>Same layout as word</p>
+  </div>
+</div>
+
+<div class="container">
+  <h3 class="collapsible_header">Level Admin</h3>
+  <button type="button" class="collapsible"><h4>Add a Level</h4></button>
+  <div class="content">
+    <p>This is where adding levels will go - Probably wont be used</p>
+  </div>
+  <button type="button" class="collapsible"><h4>Edit / Delete a Level</h4></button>
+  <div class="content">
+    <p>Same layout as word</p>
+  </div>
+</div>
+
+<div class="container">
+  <h3 class="collapsible_header">User Admin</h3>
+  <button type="button" class="collapsible"><h4>Edit user Permissions / Delete User</h4></button>
+  <div class="content">
+    <p>Here is where the user stuff will go</p>
+    <p>At the top will be a selector to select what user will be displayed below</p>
+    <table>
+      <tr>
+        <td>First Name</td>
+        <td>Last Name</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+      </tr>
+      <tr>
+        <td>Role</td>
+      </tr>
+      <tr>
+        <td>Edit User Role</td>
+        <td>Delete User</td>
+      </tr>
+    </table>
+  </div>
+</div>
+{% endblock %}

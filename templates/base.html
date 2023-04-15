@@ -19,7 +19,7 @@
             <a href="/word_list/0_0">Words</a>
             {% if logged_in %}
                 {% if admin %}
-                    <a href="/">Admin</a>
+                    <a href="/admin">Admin</a>
                 {% endif %}
                 <a href="/logout">Logout</a>
                 {% else %}
@@ -38,5 +38,23 @@
         {% endblock %}
     </main>
 </div>
+
+<script>
+  var coll = document.getElementsByClassName("collapsible");
+  var i;
+
+  for (i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var content = this.nextElementSibling;
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    });
+  }
+</script>
+
 </body>
 </html>
