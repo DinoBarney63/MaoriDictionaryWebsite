@@ -3,12 +3,17 @@
 {% block pageheading %}Words...{% endblock %}
 
 {% block main %}
-<div id="filterlist">
+<div class="container">
+  <button type="button" class="collapsible"><h3>Filters</h3></button>
+  <div class="content", id="filterlist">
     <div class="column">
-        <table>
+        <table class="filtertable">
+            <th>
+                <a>Category Filters</a>
+            </th>
             <tr>
                 <td>
-                    <a href="/word_list/0_{{ current_level }}">all categories</a>
+                    <a href="/word_list/0_{{ current_level }}">All categories</a>
                 </td>
             </tr>
             {% for category in category_list %}
@@ -21,10 +26,13 @@
         </table>
     </div>
     <div class="column">
-        <table>
+        <table class="filtertable">
+            <th>
+                <a>Level Filters</a>
+            </th>
             <tr>
                 <td>
-                    <a href="/word_list/{{ current_category }}_0">all levels</a>
+                    <a href="/word_list/{{ current_category }}_0">All levels</a>
                 </td>
             </tr>
             {% for level in level_list %}
@@ -36,9 +44,23 @@
             {% endfor %}
         </table>
     </div>
+
+    {% if admin %}
+      <table id="editfilters">
+          <tr>
+              <td style="width: 50%">
+                <a href="/category_list">Edit Categories</a>
+              </td>
+              <td style="width: 50%">
+                <a href="/level_list">Edit Levels</a>
+              </td>
+          </tr>
+      </table>
+    {% endif %}
+  </div>
 </div>
 
-<table id="wordlist">
+<table id="list">
   <tr>
     <th style="width:40%">Maori Word</th>
     <th style="width:40%">English Translation</th>

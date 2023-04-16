@@ -140,6 +140,7 @@ nav a:hover {
   display: none;
   overflow: hidden;
   background-color: #f1f1f1;
+  margin-bottom: 5px;
 }
 
 table {
@@ -153,11 +154,11 @@ td, th {
   padding: 8px;
 }
 
-#wordlist tr:nth-child(even) {background-color: #f2f2f2;}
+.list tr:nth-child(even) {background-color: #f2f2f2;}
 
-#wordlist tr:hover {background-color: #dddddd;}
+.list tr:hover {background-color: #dddddd;}
 
-#wordlist th, #filterlist th, #wordinfomation .header {
+.list th, #filterlist th, #wordinfomation .header {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
@@ -165,10 +166,11 @@ td, th {
   color: white;
 }
 
-#filterlist {
-  margin-left:-5px;
-  margin-right:-5px;
-}
+.filtertable{border: 1px solid #b4b4b4;}
+
+.filtertable tr:nth-child(odd) {background-color: #fdfdfd;}
+
+.filtertable tr:hover {background-color: #dddddd;}
 
 .column {
   float: left;
@@ -180,4 +182,9 @@ td, th {
   content: "";
   clear: both;
   display: table;
+}
+
+#editfilters{
+    margin-left: 5px;
+    width: 99%;
 }

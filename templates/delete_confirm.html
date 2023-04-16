@@ -3,5 +3,5 @@
 {% block pageheading %}Confirm Delete{% endblock %}
 
 {% block main %}
-  <h3>Are you sure you want to delete {{ type }} {{ word_information[1] }} / {{ word_information[2] }}? <a href="/individual_{{ type }}/delete_{{ type }}_confirm/{{ word_information[0] }}">Yes</a> / <a href="/individual_word/{{ word_information[0] }}">No</a></h3>
+  <h3>Are you sure you want to delete {{ type }} {{ information[1] }}{% if information[2] != null%} / {{ information[2] }}{% endif %}? <a href="/individual_{{ type }}/delete_{{ type }}_confirm/{{ information[0] }}">Yes</a> / <a href="/individual_{{type}}/{{ information[0] }}">No</a></h3>
 {% endblock %}

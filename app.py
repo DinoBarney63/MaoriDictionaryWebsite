@@ -24,13 +24,11 @@ def create_connection(db_file):
         print(e)
     return None
 
-
 def is_logged_in():
     if session.get('email') is None:
         return False
     else:
         return True
-
 
 def is_admin():
     if is_logged_in():
@@ -41,7 +39,6 @@ def is_admin():
     else:
         return False
 
-
 def in_school():
     if is_logged_in():
         email_parts = session.get('email').split('.')
@@ -49,6 +46,24 @@ def in_school():
             return True
     else:
         return False
+
+def reformat_word_info(word):
+    word_info = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).capitalize(), word[5], word[6], word[7], word[8])
+    return word_info
+
+def reformat_word_list(words):
+    word_list = []
+    for word in words:
+        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
+        word_list.append(word)
+    return word_list
+
+def reformat_category_list(categories):
+    category_list = []
+    for category in categories:
+        category = (category[0], str(category[1]).title())
+        category_list.append(category)
+    return category_list
 
 
 @app.route('/')
@@ -88,11 +103,15 @@ def render_word_list(category_id, level_id):
         cur.execute(query, (category, level))
     words = cur.fetchall()
     con.close()
-    word_list = []
+
     # Reformatting the words to be displayed
+    word_list = []
     for word in words:
         word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
         word_list.append(word)
+
+    # Reformatting the categories to be displayed
+    category_list = reformat_category_list(category_list)
     return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, current_category=category_id, current_level=level_id)
 
 
@@ -107,7 +126,7 @@ def render_individual_word(word_id):
     con.close()
     info = info[0]
     # Reformatting the word to be displayed
-    word_info = (info[0], str(info[1]).title(), str(info[2]).title(), str(info[3]).title(), str(info[4]).capitalize(), info[5], info[6], info[7], info[8])
+    word_info = reformat_word_info(info)
     return render_template('word_detail.html', page_name='Word '+ word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
 
@@ -144,13 +163,18 @@ def render_edit_word_information(word_id):
     # Get categories
     query = "SELECT * FROM category"
     cur.execute(query)
-    category_list = cur.fetchall()
+    categories = cur.fetchall()
     # Get levels
     query = "SELECT * FROM level"
     cur.execute(query)
     level_list = cur.fetchall()
     con.close()
+
+    # Reformatting the word info to be displayed
     word_info = word_info[0]
+    word_info = reformat_word_info(word_info)
+    # Reformatting the categories to be displayed
+    category_list = reformat_category_list(categories)
     return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info, category_list=category_list, level_list=level_list)
 
 
@@ -166,8 +190,11 @@ def render_delete_word(word_id):
     cur.execute(query, (word_id,))
     word_info = cur.fetchall()
     con.close()
+
+    # Reformatting the word info to be displayed
     word_info = word_info[0]
-    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info, type='word')
+    word_info = reformat_word_info(word_info)
+    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), information=word_info, type='word')
 
 
 @app.route('/individual_word/delete_word_confirm/<word_id>')
@@ -185,6 +212,68 @@ def delete_word_confirm(word_id):
     return redirect("/word_list/0_0")
 
 
+@app.route('/category_list')
+def render_category_list():
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM category"
+    cur.execute(query)
+    categories = cur.fetchall()
+    con.close()
+
+    # Reformatting the categories to be displayed
+    category_list = reformat_category_list(categories)
+    return render_template('filter_list.html', page_name='Category List', logged_in=is_logged_in(), admin=is_admin(), filter_list=category_list, type='category')
+
+
+@app.route('/individual_category/delete_category/<category_id>')
+def render_delete_category(category_id):
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM category WHERE id = ?"
+    cur.execute(query, (category_id,))
+    category_info = cur.fetchall()
+    con.close()
+    category_info = reformat_category_list(category_info)
+    category_info = category_info[0]
+    return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category')
+
+
+@app.route('/individual_category/delete_category_confirm/<category_id>')
+def delete_category_confirm(category_id):
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "DELETE FROM category WHERE id = ?"
+    cur.execute(query, (category_id,))
+    con.commit()
+    con.close()
+
+    return redirect("/")
+
+@app.route('/level_list')
+def render_level_list():
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM level"
+    cur.execute(query)
+    level_list = cur.fetchall()
+    con.close()
+
+    return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(), filter_list=level_list, type='level')
+
+
 
 @app.route('/admin')
 def render_admin():
@@ -200,27 +289,17 @@ def render_admin():
     categories = cur.fetchall()
     query = "SELECT * FROM level"
     cur.execute(query)
-    levels = cur.fetchall()
+    level_list = cur.fetchall()
     query = "SELECT * FROM user"
     cur.execute(query)
     user_list = cur.fetchall()
     con.close()
     
     # Reformatting the words to be displayed
-    word_list = []
-    for word in words:
-        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
-        word_list.append(word)
+    word_list = reformat_word_list(words)
+
     # Reformatting the categories to be displayed
-    category_list = []
-    for category in categories:
-        category = (category[0], str(category[1]).title())
-        category_list.append(category)
-    # Reformatting the levels to be displayed
-    level_list = []
-    for level in levels:
-        level = (level[0], str(level[1]).title())
-        level_list.append(level)
+    category_list = reformat_category_list(categories)
 
     return render_template("admin.html", page_name='Admin', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, user_list=user_list)
     
