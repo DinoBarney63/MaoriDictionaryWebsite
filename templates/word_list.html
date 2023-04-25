@@ -4,6 +4,7 @@
 
 {% block main %}
 <div class="container">
+  <!-- >Decided to make the filter list collapsable as 14 lines is quite a lot of space (Assuming that more won't be added)</!-->
   <button type="button" class="collapsible"><h3>Filters</h3></button>
   <div class="content", id="filterlist">
     <div class="column">
@@ -44,7 +45,7 @@
             {% endfor %}
         </table>
     </div>
-
+    <!-- >To keep the same format I have decided to make the filter lists available to admins directly from the filters themselves<!-->
     {% if admin %}
       <table id="editfilters">
           <tr>
@@ -67,6 +68,7 @@
     <th style="width:10%">Level</th>
     <th style="width:10%">Category</th>
   </tr>
+  <!-- >Decided not to display images on the list as the images would make the lines much taller making the overall list much longer<!-->
   {% for word in word_list %}
     <tr>
       <td><a href="/individual_word/{{ word[0] }}">{{ word[1] }}</a></td>

@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -24,12 +24,14 @@ def create_connection(db_file):
         print(e)
     return None
 
+# Check to see if the user is logged in
 def is_logged_in():
     if session.get('email') is None:
         return False
     else:
         return True
 
+# Check to see if the user is an admin
 def is_admin():
     if is_logged_in():
         if session.get('role') == "Teacher" or session.get('role') == "Admin":
@@ -39,6 +41,7 @@ def is_admin():
     else:
         return False
 
+# Check to see if the user has a school email
 def in_school():
     if is_logged_in():
         email_parts = session.get('email').split('.')
@@ -47,10 +50,12 @@ def in_school():
     else:
         return False
 
+# Reformat all of the word's info, only can be used for as single word
 def reformat_word_info(word):
     word_info = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).capitalize(), word[5], word[6], word[7], word[8])
     return word_info
 
+# Reformat the word for displaying in the word list
 def reformat_word_list(words):
     word_list = []
     for word in words:
@@ -58,6 +63,7 @@ def reformat_word_list(words):
         word_list.append(word)
     return word_list
 
+# Reformat the categories to be displayed
 def reformat_category_list(categories):
     category_list = []
     for category in categories:
@@ -68,6 +74,7 @@ def reformat_category_list(categories):
 
 @app.route('/')
 def render_home():
+    # If the user is in a school but hasn't confirmed their role we redirect them to do so
     if in_school():
         if session['role'] == 'User':
             return redirect('/confirm_school_role/' + str(session['userid']))
@@ -77,6 +84,7 @@ def render_home():
 
 @app.route('/word_list/<category_id>_<level_id>')
 def render_word_list(category_id, level_id):
+    # Gets the category and level lists to be displayed
     con = create_connection(DATABASE)
     cur = con.cursor()
     query = "SELECT id, name FROM category"
@@ -88,7 +96,7 @@ def render_word_list(category_id, level_id):
 
     category = category_list[int(category_id) - 1][1]
     level = int(level_id)
-    # If there is no filter then we select all the words otherwise we select those with the filter
+    # If there is no filter then we select all the words otherwise we select those with the correct filter
     if category_id == "0" and level_id == "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
         cur.execute(query)
@@ -99,17 +107,13 @@ def render_word_list(category_id, level_id):
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE level=?"
         cur.execute(query, (level, ))
     else:
-        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?" # Here we need to use an AND not a comma
         cur.execute(query, (category, level))
-    words = cur.fetchall()
+    word_list = cur.fetchall()
     con.close()
 
     # Reformatting the words to be displayed
-    word_list = []
-    for word in words:
-        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
-        word_list.append(word)
-
+    word_list = reformat_word_list(word_list)
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(category_list)
     return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, current_category=category_id, current_level=level_id)
@@ -124,8 +128,9 @@ def render_individual_word(word_id):
     cur.execute(query, (word_id, ))
     info = cur.fetchall()
     con.close()
-    info = info[0]
+
     # Reformatting the word to be displayed
+    info = info[0]
     word_info = reformat_word_info(info)
     return render_template('word_detail.html', page_name='Word '+ word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
@@ -134,8 +139,9 @@ def render_individual_word(word_id):
 def render_edit_word_information(word_id):
     if not is_admin():
         return redirect('/individual_word/' + word_id)
+
     if request.method == 'POST':
-        # Reformat the word to all lowercase
+        # Reformat the word info to all lowercase
         maori_word = request.form.get('maori_word').lower().strip()
         english_translation = request.form.get('english_translation').lower().strip()
         category = request.form.get('category').lower().strip()
@@ -143,15 +149,17 @@ def render_edit_word_information(word_id):
         level = request.form.get('level').strip()
         last_edited_user = session['firstname'] + " " + session['lastname']
         image_name = request.form.get('image_name').lower().strip()
+        # Converts the blank image name to none
         if image_name == "":
             image_name = "none"
 
         con = create_connection(DATABASE)
         cur = con.cursor()
         query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
-        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id))
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id)) # Here we needed to organise the variables in the order we want them to be in when they are put into the ?
         con.commit()
         con.close()
+
         return redirect('/individual_word/' + word_id)
 
     con = create_connection(DATABASE)
@@ -240,6 +248,8 @@ def render_delete_category(category_id):
     cur.execute(query, (category_id,))
     category_info = cur.fetchall()
     con.close()
+
+    # Reformatting category to be displayed
     category_info = reformat_category_list(category_info)
     category_info = category_info[0]
     return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category')
@@ -274,11 +284,44 @@ def render_level_list():
     return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(), filter_list=level_list, type='level')
 
 
+@app.route('/individual_level/delete_level/<level_id>')
+def render_level_category(level_id):
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM level WHERE id = ?"
+    cur.execute(query, (level_id,))
+    level_info = cur.fetchall()
+    con.close()
+
+    # Reformatting level to be displayed
+    level_info = level_info[0]
+    return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=level_info, type='level')
+
+
+@app.route('/individual_level/delete_level_confirm/<level_id>')
+def delete_level_confirm(level_id):
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "DELETE FROM level WHERE id = ?"
+    cur.execute(query, (level_id,))
+    con.commit()
+    con.close()
+
+    return redirect("/")
+
 
 @app.route('/admin')
 def render_admin():
     if not is_admin():
         return redirect('/')
+
     con = create_connection(DATABASE)
     cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
@@ -297,10 +340,8 @@ def render_admin():
     
     # Reformatting the words to be displayed
     word_list = reformat_word_list(words)
-
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(categories)
-
     return render_template("admin.html", page_name='Admin', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, user_list=user_list)
     
 
@@ -309,6 +350,7 @@ def render_admin():
 def render_login():
     if is_logged_in():
         return redirect('/')
+
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
@@ -353,7 +395,9 @@ def logout():
 def render_signup():
     if is_logged_in():
         return redirect('/')
+
     if request.method == 'POST':
+        # Reformat the user info
         first_name = request.form.get('first_name').title().strip()
         last_name = request.form.get('last_name').title().strip()
         email = request.form.get('email').lower().strip()
@@ -366,11 +410,13 @@ def render_signup():
         if len(password) < 8:
             return redirect("/signup?error=Passwords+must+be+at+least+8+characters")
 
+        # Hashes the passwords
         hashed_password = bcrypt.generate_password_hash(password)
         con = create_connection(DATABASE)
         cur = con.cursor()
         query = "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)"
 
+        # Checks to see if the email has already been used
         try:
             cur.execute(query, (first_name, last_name, email, hashed_password, "User"))
         except sqlite3.IntegrityError:
@@ -390,6 +436,7 @@ def render_signup():
 def render_confirm_school_role(user_id):
     if not in_school():
         return redirect('/')
+
     return render_template('confirm_school_role.html', page_name='Confirm', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
 
 
@@ -402,6 +449,7 @@ def signup_student(user_id):
     con.commit()
     con.close()
     session['role'] = 'Student'
+
     return redirect('/')
 
 
@@ -414,6 +462,7 @@ def signup_teacher(user_id):
     con.commit()
     con.close()
     session['role'] = 'Teacher'
+
     return redirect('/')
 
 

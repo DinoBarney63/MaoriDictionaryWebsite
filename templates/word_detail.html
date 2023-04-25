@@ -36,6 +36,7 @@
         <td class="header">Last Edited User</td>
         <td>{{ word_information[7] }}</td>
     </tr>
+    <!-- >Decided to let the admin edit the words directly from the word information page, instead of having to find the word in the admin page<!-->
     {% if admin %}
         <tr>
             <td colspan="2"><a href="edit/{{ word_information[0] }}">Edit Word Information</a></td>
