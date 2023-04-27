@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -202,7 +202,7 @@ def render_delete_word(word_id):
     # Reformatting the word info to be displayed
     word_info = word_info[0]
     word_info = reformat_word_info(word_info)
-    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), information=word_info, type='word')
+    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), information=word_info, type='word', name='Word')
 
 
 @app.route('/individual_word/delete_word_confirm/<word_id>')
@@ -234,7 +234,43 @@ def render_category_list():
 
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(categories)
-    return render_template('filter_list.html', page_name='Category List', logged_in=is_logged_in(), admin=is_admin(), filter_list=category_list, type='category')
+    return render_template('filter_list.html', page_name='Category List', logged_in=is_logged_in(), admin=is_admin(), filter_list=category_list, type='category', name='Category')
+
+
+@app.route('/individual_category/<category_id>')
+def individual_category(category_id):
+    return redirect('/category_list')
+
+
+@app.route('/individual_category/edit_category/<category_id>', methods=['POST', 'GET'])
+def render_edit_category(category_id):
+    if not is_admin():
+        return redirect('/')
+
+    if request.method == 'POST':
+        # Reformat the name to all lowercase
+        category_name = request.form.get('filter_name').lower().strip()
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "UPDATE category SET name = ? WHERE id = ?"
+        cur.execute(query, (category_name, category_id))
+        con.commit()
+        con.close()
+
+        return redirect('/category_list')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM category WHERE id = ?"
+    cur.execute(query, (category_id,))
+    category_info = cur.fetchall()
+    con.close()
+
+    # Reformatting category to be displayed
+    category_info = reformat_category_list(category_info)
+    category_info = category_info[0]
+    return render_template('edit_filter.html', page_name='Edit Category' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category', name='Category')
 
 
 @app.route('/individual_category/delete_category/<category_id>')
@@ -252,7 +288,7 @@ def render_delete_category(category_id):
     # Reformatting category to be displayed
     category_info = reformat_category_list(category_info)
     category_info = category_info[0]
-    return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category')
+    return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category', name='Category')
 
 
 @app.route('/individual_category/delete_category_confirm/<category_id>')
@@ -269,6 +305,7 @@ def delete_category_confirm(category_id):
 
     return redirect("/")
 
+
 @app.route('/level_list')
 def render_level_list():
     if not is_admin():
@@ -281,7 +318,41 @@ def render_level_list():
     level_list = cur.fetchall()
     con.close()
 
-    return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(), filter_list=level_list, type='level')
+    return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(), filter_list=level_list, type='level', name='Level')
+
+
+@app.route('/individual_level/<level_id>')
+def individual_level(level_id):
+    return redirect('/level_list')
+
+
+@app.route('/individual_level/edit_level/<level_id>', methods=['POST', 'GET'])
+def render_edit_level(level_id):
+    if not is_admin():
+        return redirect('/')
+
+    if request.method == 'POST':
+        # Reformat the name to all lowercase
+        level_number = request.form.get('filter_number').lower().strip()
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "UPDATE level SET number = ? WHERE id = ?"
+        cur.execute(query, (level_number, level_id))
+        con.commit()
+        con.close()
+
+        return redirect('/level_list')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM level WHERE id = ?"
+    cur.execute(query, (level_id,))
+    category_info = cur.fetchall()
+    con.close()
+
+    category_info = category_info[0]
+    return render_template('edit_filter.html', page_name='Edit Level' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='level', name='Level')
 
 
 @app.route('/individual_level/delete_level/<level_id>')
@@ -298,8 +369,7 @@ def render_level_category(level_id):
 
     # Reformatting level to be displayed
     level_info = level_info[0]
-    return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(),
-                           admin=is_admin(), information=level_info, type='level')
+    return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=level_info, type='level', name='Level')
 
 
 @app.route('/individual_level/delete_level_confirm/<level_id>')
@@ -369,10 +439,10 @@ def render_login():
             db_password = user_data[3]
             role = user_data[4]
         except IndexError:
-            return redirect("/login?error=Email+invalid+or+password+incorrect")
+            return redirect("/login?error=Invalid+email+or+incorrect+password")
 
         if not bcrypt.check_password_hash(db_password, password):
-            return redirect(request.referrer + "error=Email+invalid+or+password+incorrect")
+            return redirect("/login?error=Invalid+email+or+incorrect+password")
 
         session['email'] = email
         session['userid'] = user_id
