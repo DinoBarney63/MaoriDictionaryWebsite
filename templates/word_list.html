@@ -8,7 +8,7 @@
   <button type="button" class="collapsible"><h3>Filters</h3></button>
   <div class="content", id="filterlist">
     <div class="column">
-        <table class="filtertable">
+        <table class="filter_table">
             <th>
                 <a>Category Filters</a>
             </th>
@@ -27,7 +27,7 @@
         </table>
     </div>
     <div class="column">
-        <table class="filtertable">
+        <table class="filter_table">
             <th>
                 <a>Level Filters</a>
             </th>
@@ -47,7 +47,7 @@
     </div>
     <!-- >To keep the same format I have decided to make the filter lists available to admins directly from the filters themselves<!-->
     {% if admin %}
-      <table id="editfilters">
+      <table id="edit_filters">
           <tr>
               <td style="width: 50%">
                 <a href="/category_list">Edit Categories</a>
@@ -61,8 +61,8 @@
   </div>
 </div>
 
-<table id="list">
-  <!-- >The word list has it's rows alternate between white and light gray making is easier to see what lines up with what</!-->
+<table id="word_list">
+  <!-- >The word list has its rows alternate between white and light gray making is easier to see what lines up with what</!-->
   <tr>
     <th style="width:35%">Maori Word</th>
     <th style="width:35%">English Translation</th>

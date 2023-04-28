@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -24,12 +24,14 @@ def create_connection(db_file):
         print(e)
     return None
 
+
 # Check to see if the user is logged in
 def is_logged_in():
     if session.get('email') is None:
         return False
     else:
         return True
+
 
 # Check to see if the user is an admin
 def is_admin():
@@ -41,6 +43,7 @@ def is_admin():
     else:
         return False
 
+
 # Check to see if the user has a school email
 def in_school():
     if is_logged_in():
@@ -50,10 +53,26 @@ def in_school():
     else:
         return False
 
-# Reformat all of the word's info, only can be used for as single word
+
+# Gets word info and reformat it
+def get_word_info(word_id):
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM vocab_list WHERE id = ?"
+    cur.execute(query, (word_id,))
+    word_info = cur.fetchall()
+    con.close()
+
+    word_info = word_info[0]
+    word_info = reformat_word_info(word_info)
+    return word_info
+
+
+# Reformat all the word's info, only can be used for as single word
 def reformat_word_info(word):
     word_info = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).capitalize(), word[5], word[6], word[7], word[8])
     return word_info
+
 
 # Reformat the word for displaying in the word list
 def reformat_word_list(words):
@@ -63,6 +82,20 @@ def reformat_word_list(words):
         word_list.append(word)
     return word_list
 
+
+# Gets category info and reformat it
+def get_category_info(category_id):
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM category WHERE id = ?"
+    cur.execute(query, (category_id,))
+    category_info = cur.fetchall()
+    con.close()
+
+    category_info = reformat_category_list(category_info)
+    return category_info[0]
+
+
 # Reformat the categories to be displayed
 def reformat_category_list(categories):
     category_list = []
@@ -70,6 +103,18 @@ def reformat_category_list(categories):
         category = (category[0], str(category[1]).title())
         category_list.append(category)
     return category_list
+
+
+# Gets level info
+def get_level_info(level_id):
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM level WHERE id = ?"
+    cur.execute(query, (level_id,))
+    level_info = cur.fetchall()
+    con.close()
+
+    return level_info[0]
 
 
 @app.route('/')
@@ -107,7 +152,7 @@ def render_word_list(category_id, level_id):
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE level=?"
         cur.execute(query, (level, ))
     else:
-        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?" # Here we need to use an AND not a comma
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"  # Here we need to use an AND not a comma
         cur.execute(query, (category, level))
     word_list = cur.fetchall()
     con.close()
@@ -121,17 +166,9 @@ def render_word_list(category_id, level_id):
 
 @app.route('/individual_word/<word_id>')
 def render_individual_word(word_id):
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    # Get word info
-    query = "SELECT * FROM vocab_list WHERE id = ?"
-    cur.execute(query, (word_id, ))
-    info = cur.fetchall()
-    con.close()
 
-    # Reformatting the word to be displayed
-    info = info[0]
-    word_info = reformat_word_info(info)
+    # Get word information
+    word_info = get_word_info(word_id)
     return render_template('word_detail.html', page_name='Word '+ word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
 
 
@@ -156,7 +193,7 @@ def render_edit_word_information(word_id):
         con = create_connection(DATABASE)
         cur = con.cursor()
         query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
-        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id)) # Here we needed to organise the variables in the order we want them to be in when they are put into the ?
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id))  # Here we needed to organise the variables in the order we want them to be in when they are put into the ?
         con.commit()
         con.close()
 
@@ -192,16 +229,7 @@ def render_delete_word(word_id):
         return redirect('/individual_word/' + word_id)
 
     # Get word information
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM vocab_list WHERE id = ?"
-    cur.execute(query, (word_id,))
-    word_info = cur.fetchall()
-    con.close()
-
-    # Reformatting the word info to be displayed
-    word_info = word_info[0]
-    word_info = reformat_word_info(word_info)
+    word_info = get_word_info(word_id)
     return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), information=word_info, type='word', name='Word')
 
 
@@ -260,16 +288,8 @@ def render_edit_category(category_id):
 
         return redirect('/category_list')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM category WHERE id = ?"
-    cur.execute(query, (category_id,))
-    category_info = cur.fetchall()
-    con.close()
-
-    # Reformatting category to be displayed
-    category_info = reformat_category_list(category_info)
-    category_info = category_info[0]
+    # Get category info
+    category_info = get_category_info(category_id)
     return render_template('edit_filter.html', page_name='Edit Category' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category', name='Category')
 
 
@@ -278,16 +298,8 @@ def render_delete_category(category_id):
     if not is_admin():
         return redirect('/')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM category WHERE id = ?"
-    cur.execute(query, (category_id,))
-    category_info = cur.fetchall()
-    con.close()
-
-    # Reformatting category to be displayed
-    category_info = reformat_category_list(category_info)
-    category_info = category_info[0]
+    # Get category info
+    category_info = get_category_info(category_id)
     return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category', name='Category')
 
 
@@ -333,7 +345,7 @@ def render_edit_level(level_id):
 
     if request.method == 'POST':
         # Reformat the name to all lowercase
-        level_number = request.form.get('filter_number').lower().strip()
+        level_number = request.form.get('filter_number').strip()
 
         con = create_connection(DATABASE)
         cur = con.cursor()
@@ -344,31 +356,18 @@ def render_edit_level(level_id):
 
         return redirect('/level_list')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM level WHERE id = ?"
-    cur.execute(query, (level_id,))
-    category_info = cur.fetchall()
-    con.close()
-
-    category_info = category_info[0]
-    return render_template('edit_filter.html', page_name='Edit Level' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='level', name='Level')
+    # Get Level info
+    level_info = get_level_info(level_id)
+    return render_template('edit_filter.html', page_name='Edit Level' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=level_info, type='level', name='Level')
 
 
 @app.route('/individual_level/delete_level/<level_id>')
-def render_level_category(level_id):
+def render_delete_level(level_id):
     if not is_admin():
         return redirect('/')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM level WHERE id = ?"
-    cur.execute(query, (level_id,))
-    level_info = cur.fetchall()
-    con.close()
-
-    # Reformatting level to be displayed
-    level_info = level_info[0]
+    # Get Level info
+    level_info = get_level_info(level_id)
     return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=level_info, type='level', name='Level')
 
 
@@ -413,7 +412,6 @@ def render_admin():
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(categories)
     return render_template("admin.html", page_name='Admin', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, user_list=user_list)
-    
 
 
 @app.route('/login', methods=['POST', 'GET'])
