@@ -164,6 +164,37 @@ def render_word_list(category_id, level_id):
     return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, current_category=category_id, current_level=level_id)
 
 
+@app.route('/add_word', methods=['POST'])
+def add_word():
+    if not is_admin():
+        return redirect('/')
+
+    if request.method == "POST":
+        # Reformat the word info to all lowercase
+        maori_word = request.form.get('maori_word').lower().strip()
+        english_translation = request.form.get('english_translation').lower().strip()
+        category = request.form.get('category').lower().strip()
+        definition = request.form.get('definition').lower().strip()
+        level = request.form.get('level').strip()
+        last_edited_user = session['firstname'] + " " + session['lastname']
+        image_name = request.form.get('image_name').lower().strip()
+        # Converts the empty definition to pending
+        if definition == "":
+            definition = "pending"
+        # Converts the blank image name to none
+        if image_name == "":
+            image_name = "none"
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "INSERT INTO vocab_list (maori_word, english_translation, category, definition, level, last_edited_time, last_edited_user, image_name) VALUES (?, ?, ?, ?, ?, datetime('now','localtime'), ?, ?)"
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name))
+        con.commit()
+        con.close()
+
+        return redirect('/admin')
+
+
 @app.route('/individual_word/<word_id>')
 def render_individual_word(word_id):
 
@@ -248,6 +279,25 @@ def delete_word_confirm(word_id):
     return redirect("/word_list/0_0")
 
 
+@app.route('/add_category', methods=['POST'])
+def add_category():
+    if not is_admin():
+        return redirect('/')
+
+    if request.method == "POST":
+        # Reformat the category to all lowercase
+        category_name = request.form.get('filter_name').lower().strip()
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "INSERT INTO category (name) VALUES (?)"
+        cur.execute(query, (category_name,))
+        con.commit()
+        con.close()
+
+        return redirect('/category_list')
+
+
 @app.route('/category_list')
 def render_category_list():
     if not is_admin():
@@ -316,6 +366,24 @@ def delete_category_confirm(category_id):
     con.close()
 
     return redirect("/")
+
+
+@app.route('/add_level', methods=['POST'])
+def add_level():
+    if not is_admin():
+        return redirect('/')
+
+    if request.method == "POST":
+        level_number = request.form.get('filter_number')
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "INSERT INTO level (number) VALUES (?)"
+        cur.execute(query, (level_number,))
+        con.commit()
+        con.close()
+
+        return redirect('/level_list')
 
 
 @app.route('/level_list')

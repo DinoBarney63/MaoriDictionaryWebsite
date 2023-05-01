@@ -6,7 +6,51 @@
 <h3 class="collapsible_header">Word Admin</h3>
 <button type="button" class="collapsible"><h4>Add a Word</h4></button>
 <div class="content">
-  <p>This is where adding words will go</p>
+
+<form class="my-form" method="POST" action="/add_word">
+  <div class="form-group">
+    <div class="form-label">Maori Word:</div>
+    <div class="form-element"><input type="text" name="maori_word" id="maori_word" required></div>
+  </div>
+  <div class="error">{{maori_word_error}}</div>
+  <div class="form-group">
+    <div class="form-label">English Translation:</div>
+    <div class="form-element"><input type="text" name="english_translation" id="english_translation" required></div>
+  </div>
+  <div class="error">{{english_translation_error}}</div>
+  <div class="form-group">
+    <div class="form-label">Category:</div>
+    <div class="form-element">
+      <select id="category" name="category">
+        {% for category in category_list %}
+          <option>{{ category[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="form-label">Definition:</div>
+    <div class="form-element"><input type="text" name="definition" id="definition"></div>
+  </div>
+  <div class="form-group">
+    <div class="form-label">Level:</div>
+    <div class="form-element">
+      <select id="level" name="level">
+        {% for level in level_list %}
+          <option>{{ level[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="form-label">Image Name:</div>
+    <div class="form-element"><input type="text" name="image_name" id="image_name"></div>
+  </div>
+  <div class="form-group">
+    <div class="form-label"></div>
+    <div class="form-element"><input type="submit" value="Add Word"></div>
+  </div>
+</form>
 </div>
 <button type="button" class="collapsible"><h4>Edit / Delete a Word</h4></button>
 <div class="content">
