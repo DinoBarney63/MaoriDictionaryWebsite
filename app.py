@@ -70,7 +70,8 @@ def get_word_info(word_id):
 
 # Reformat all the word's info, only can be used for as single word
 def reformat_word_info(word):
-    word_info = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).capitalize(), word[5], word[6], word[7], word[8])
+    word_info = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).capitalize(),
+                 word[5], word[6], word[7], word[8])
     return word_info
 
 
@@ -147,12 +148,13 @@ def render_word_list(category_id, level_id):
         cur.execute(query)
     elif category_id != "0" and level_id == "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
-        cur.execute(query, (category, ))
+        cur.execute(query, (category,))
     elif category_id == "0" and level_id != "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE level=?"
-        cur.execute(query, (level, ))
+        cur.execute(query, (level,))
     else:
-        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"  # Here we need to use an AND not a comma
+        query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"
+        # Here we need to use an AND not a comma
         cur.execute(query, (category, level))
     word_list = cur.fetchall()
     con.close()
@@ -161,7 +163,9 @@ def render_word_list(category_id, level_id):
     word_list = reformat_word_list(word_list)
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(category_list)
-    return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, current_category=category_id, current_level=level_id)
+    return render_template('word_list.html', page_name='Words', logged_in=is_logged_in(), admin=is_admin(),
+                           word_list=word_list, category_list=category_list, level_list=level_list,
+                           current_category=category_id, current_level=level_id)
 
 
 @app.route('/add_word', methods=['POST'])
@@ -197,10 +201,10 @@ def add_word():
 
 @app.route('/individual_word/<word_id>')
 def render_individual_word(word_id):
-
     # Get word information
     word_info = get_word_info(word_id)
-    return render_template('word_detail.html', page_name='Word '+ word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info)
+    return render_template('word_detail.html', page_name='Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(),
+                           word_information=word_info)
 
 
 @app.route('/individual_word/edit/<word_id>', methods=['POST', 'GET'])
@@ -217,6 +221,9 @@ def render_edit_word_information(word_id):
         level = request.form.get('level').strip()
         last_edited_user = session['firstname'] + " " + session['lastname']
         image_name = request.form.get('image_name').lower().strip()
+        # Converts the empty definition to pending
+        if definition == "":
+            definition = "pending"
         # Converts the blank image name to none
         if image_name == "":
             image_name = "none"
@@ -224,7 +231,9 @@ def render_edit_word_information(word_id):
         con = create_connection(DATABASE)
         cur = con.cursor()
         query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
-        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name, word_id))  # Here we needed to organise the variables in the order we want them to be in when they are put into the ?
+        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name,
+                            word_id))
+        # Here we needed to organise the variables in the order we want them to be in when they are put into the ?
         con.commit()
         con.close()
 
@@ -251,7 +260,9 @@ def render_edit_word_information(word_id):
     word_info = reformat_word_info(word_info)
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(categories)
-    return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), word_information=word_info, category_list=category_list, level_list=level_list)
+    return render_template('edit_word_information.html', page_name='Edit Word ' + word_id, logged_in=is_logged_in(),
+                           admin=is_admin(), word_information=word_info, category_list=category_list,
+                           level_list=level_list)
 
 
 @app.route('/individual_word/delete_word/<word_id>')
@@ -261,7 +272,8 @@ def render_delete_word(word_id):
 
     # Get word information
     word_info = get_word_info(word_id)
-    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(), admin=is_admin(), information=word_info, type='word', name='Word')
+    return render_template('delete_confirm.html', page_name='Delete Word ' + word_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=word_info, type='word', name='Word')
 
 
 @app.route('/individual_word/delete_word_confirm/<word_id>')
@@ -291,7 +303,14 @@ def add_category():
         con = create_connection(DATABASE)
         cur = con.cursor()
         query = "INSERT INTO category (name) VALUES (?)"
-        cur.execute(query, (category_name,))
+
+        # Checks to see if the category already exists
+        try:
+            cur.execute(query, (category_name,))
+        except sqlite3.IntegrityError:
+            con.close()
+            return redirect('/category_list?error=Category+already+exists')
+
         con.commit()
         con.close()
 
@@ -312,7 +331,8 @@ def render_category_list():
 
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(categories)
-    return render_template('filter_list.html', page_name='Category List', logged_in=is_logged_in(), admin=is_admin(), filter_list=category_list, type='category', name='Category')
+    return render_template('filter_list.html', page_name='Category List', logged_in=is_logged_in(), admin=is_admin(),
+                           filter_list=category_list, type='category', name='Category')
 
 
 @app.route('/individual_category/<category_id>')
@@ -340,7 +360,8 @@ def render_edit_category(category_id):
 
     # Get category info
     category_info = get_category_info(category_id)
-    return render_template('edit_filter.html', page_name='Edit Category' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category', name='Category')
+    return render_template('edit_filter.html', page_name='Edit Category' + category_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=category_info, type='category', name='Category')
 
 
 @app.route('/individual_category/delete_category/<category_id>')
@@ -350,7 +371,8 @@ def render_delete_category(category_id):
 
     # Get category info
     category_info = get_category_info(category_id)
-    return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(), admin=is_admin(), information=category_info, type='category', name='Category')
+    return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=category_info, type='category', name='Category')
 
 
 @app.route('/individual_category/delete_category_confirm/<category_id>')
@@ -379,7 +401,14 @@ def add_level():
         con = create_connection(DATABASE)
         cur = con.cursor()
         query = "INSERT INTO level (number) VALUES (?)"
-        cur.execute(query, (level_number,))
+
+        # Checks to see if the level already exists
+        try:
+            cur.execute(query, (level_number,))
+        except sqlite3.IntegrityError:
+            con.close()
+            return redirect('/level_list?error=Level+already+exists')
+
         con.commit()
         con.close()
 
@@ -398,7 +427,8 @@ def render_level_list():
     level_list = cur.fetchall()
     con.close()
 
-    return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(), filter_list=level_list, type='level', name='Level')
+    return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(),
+                           filter_list=level_list, type='level', name='Level')
 
 
 @app.route('/individual_level/<level_id>')
@@ -426,7 +456,8 @@ def render_edit_level(level_id):
 
     # Get Level info
     level_info = get_level_info(level_id)
-    return render_template('edit_filter.html', page_name='Edit Level' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=level_info, type='level', name='Level')
+    return render_template('edit_filter.html', page_name='Edit Level' + level_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=level_info, type='level', name='Level')
 
 
 @app.route('/individual_level/delete_level/<level_id>')
@@ -436,7 +467,8 @@ def render_delete_level(level_id):
 
     # Get Level info
     level_info = get_level_info(level_id)
-    return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(), admin=is_admin(), information=level_info, type='level', name='Level')
+    return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=level_info, type='level', name='Level')
 
 
 @app.route('/individual_level/delete_level_confirm/<level_id>')
@@ -474,12 +506,13 @@ def render_admin():
     cur.execute(query)
     user_list = cur.fetchall()
     con.close()
-    
+
     # Reformatting the words to be displayed
     word_list = reformat_word_list(words)
     # Reformatting the categories to be displayed
     category_list = reformat_category_list(categories)
-    return render_template("admin.html", page_name='Admin', logged_in=is_logged_in(), admin=is_admin(), word_list=word_list, category_list=category_list, level_list=level_list, user_list=user_list)
+    return render_template("admin.html", page_name='Admin', logged_in=is_logged_in(), admin=is_admin(),
+                           word_list=word_list, category_list=category_list, level_list=level_list, user_list=user_list)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -573,7 +606,8 @@ def render_confirm_school_role(user_id):
     if not in_school():
         return redirect('/')
 
-    return render_template('confirm_school_role.html', page_name='Confirm', user_id=user_id, logged_in=is_logged_in(), admin=is_admin())
+    return render_template('confirm_school_role.html', page_name='Confirm', user_id=user_id, logged_in=is_logged_in(),
+                           admin=is_admin())
 
 
 @app.route('/signup_student/<user_id>')

@@ -166,6 +166,11 @@ td, th {
   color: white;
 }
 
+.filter_list tr:nth-child(even) {background-color: #f2f2f2;}
+
+.filter_list tr:hover {background-color: #dddddd;}
+
+
 .filter_table{border: 1px solid #b4b4b4;}
 
 .filter_table tr:nth-child(odd) {background-color: #fdfdfd;}
