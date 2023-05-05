@@ -20,6 +20,7 @@
     <div class="form-label">Category:</div>
     <div class="form-element">
       <select id="category" name="category">
+        <option>None</option>
         <!-- >Made it so the current category is the one selected on the drop down list</!-->
         {% for category in category_list %}
           {% if category[1] == word_information[3] %}
@@ -40,6 +41,7 @@
     <div class="form-label">Level:</div>
     <div class="form-element">
       <select id="level" name="level">
+        <option>None</option>
         <!-- >Made it so the current level is the one selected on the drop down list</!-->
         {% for level in level_list %}
           {% if level[1] == word_information[5] %}

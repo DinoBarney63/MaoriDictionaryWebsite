@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -345,12 +345,32 @@ def render_edit_category(category_id):
     if not is_admin():
         return redirect('/')
 
+    # Get category info
+    category_info = get_category_info(category_id)
+
+    category = (category_info[1]).lower()
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+    cur.execute(query, (category,))
+    word_list = cur.fetchall()
+    con.close()
+
     if request.method == 'POST':
         # Reformat the name to all lowercase
         category_name = request.form.get('filter_name').lower().strip()
 
         con = create_connection(DATABASE)
         cur = con.cursor()
+
+        # Edit all words in word list
+        for word in word_list:
+            word_id = word[0]
+            query = "UPDATE vocab_list SET category = ? WHERE id = ?"
+            cur.execute(query, (category_name, word_id))
+            con.commit()
+
+        # Updates the category
         query = "UPDATE category SET name = ? WHERE id = ?"
         cur.execute(query, (category_name, category_id))
         con.commit()
@@ -358,10 +378,10 @@ def render_edit_category(category_id):
 
         return redirect('/category_list')
 
-    # Get category info
-    category_info = get_category_info(category_id)
+    # Reformatting the words to be displayed
+    word_list = reformat_word_list(word_list)
     return render_template('edit_filter.html', page_name='Edit Category' + category_id, logged_in=is_logged_in(),
-                           admin=is_admin(), information=category_info, type='category', name='Category')
+                           admin=is_admin(), information=category_info, type='category', name='Category', affected_words=word_list)
 
 
 @app.route('/individual_category/delete_category/<category_id>')
@@ -371,8 +391,19 @@ def render_delete_category(category_id):
 
     # Get category info
     category_info = get_category_info(category_id)
+
+    category = (category_info[1]).lower()
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+    cur.execute(query, (category,))
+    word_list = cur.fetchall()
+    con.close()
+
+    # Reformatting the words to be displayed
+    word_list = reformat_word_list(word_list)
     return render_template('delete_confirm.html', page_name='Delete Category ' + category_id, logged_in=is_logged_in(),
-                           admin=is_admin(), information=category_info, type='category', name='Category')
+                           admin=is_admin(), information=category_info, type='category', name='Category', affected_words=word_list)
 
 
 @app.route('/individual_category/delete_category_confirm/<category_id>')
@@ -380,12 +411,29 @@ def delete_category_confirm(category_id):
     if not is_admin():
         return redirect('/')
 
+    # Get category info
+    category_info = get_category_info(category_id)
+
+    category = (category_info[1]).lower()
     con = create_connection(DATABASE)
     cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+    cur.execute(query, (category,))
+    word_list = cur.fetchall()
+
+    # Edit all words in word list
+    for word in word_list:
+        word_id = word[0]
+        query = "UPDATE vocab_list SET category = null WHERE id = ?"
+        cur.execute(query, (word_id, ))
+        con.commit()
+
+    # Deletes the category
     query = "DELETE FROM category WHERE id = ?"
     cur.execute(query, (category_id,))
     con.commit()
     con.close()
+
 
     return redirect("/")
 
@@ -441,23 +489,44 @@ def render_edit_level(level_id):
     if not is_admin():
         return redirect('/')
 
+    # Get Level info
+    level_info = get_level_info(level_id)
+
+    level = (level_info[1])
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, level, level FROM vocab_list WHERE level=?"
+    cur.execute(query, (level,))
+    word_list = cur.fetchall()
+    con.close()
+
     if request.method == 'POST':
         # Reformat the name to all lowercase
         level_number = request.form.get('filter_number').strip()
 
         con = create_connection(DATABASE)
         cur = con.cursor()
+
+        # Edit all words in word list
+        for word in word_list:
+            word_id = word[0]
+            query = "UPDATE vocab_list SET level = ? WHERE id = ?"
+            cur.execute(query, (level_number, word_id))
+            con.commit()
+
+        # Updates the level
         query = "UPDATE level SET number = ? WHERE id = ?"
         cur.execute(query, (level_number, level_id))
         con.commit()
         con.close()
 
+
         return redirect('/level_list')
 
-    # Get Level info
-    level_info = get_level_info(level_id)
+    # Reformatting the words to be displayed
+    word_list = reformat_word_list(word_list)
     return render_template('edit_filter.html', page_name='Edit Level' + level_id, logged_in=is_logged_in(),
-                           admin=is_admin(), information=level_info, type='level', name='Level')
+                           admin=is_admin(), information=level_info, type='level', name='Level', affected_words=word_list)
 
 
 @app.route('/individual_level/delete_level/<level_id>')
@@ -467,8 +536,19 @@ def render_delete_level(level_id):
 
     # Get Level info
     level_info = get_level_info(level_id)
+
+    level = (level_info[1])
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, level, level FROM vocab_list WHERE level=?"
+    cur.execute(query, (level,))
+    word_list = cur.fetchall()
+    con.close()
+
+    # Reformatting the words to be displayed
+    word_list = reformat_word_list(word_list)
     return render_template('delete_confirm.html', page_name='Delete Level ' + level_id, logged_in=is_logged_in(),
-                           admin=is_admin(), information=level_info, type='level', name='Level')
+                           admin=is_admin(), information=level_info, type='level', name='Level', affected_words=word_list)
 
 
 @app.route('/individual_level/delete_level_confirm/<level_id>')
@@ -476,8 +556,24 @@ def delete_level_confirm(level_id):
     if not is_admin():
         return redirect('/')
 
+    # Get Level info
+    level_info = get_level_info(level_id)
+
+    level = (level_info[1])
     con = create_connection(DATABASE)
     cur = con.cursor()
+    query = "SELECT id, maori_word, english_translation, level, level FROM vocab_list WHERE level=?"
+    cur.execute(query, (level,))
+    word_list = cur.fetchall()
+
+    # Edit all words in word list
+    for word in word_list:
+        word_id = word[0]
+        query = "UPDATE vocab_list SET level = null WHERE id = ?"
+        cur.execute(query, (word_id,))
+        con.commit()
+
+    # Deletes the category
     query = "DELETE FROM level WHERE id = ?"
     cur.execute(query, (level_id,))
     con.commit()
@@ -529,16 +625,15 @@ def render_login():
         cur.execute(query, (email,))
         user_data = cur.fetchone()
         con.close()
-        # if given the email that is not in the database this will raise an error
-        # would be better to find out how to see if the query return an empty result set
-        try:
-            user_id = user_data[0]
-            first_name = user_data[1]
-            last_name = user_data[2]
-            db_password = user_data[3]
-            role = user_data[4]
-        except IndexError:
+
+        if user_data is None:
             return redirect("/login?error=Invalid+email+or+incorrect+password")
+
+        user_id = user_data[0]
+        first_name = user_data[1]
+        last_name = user_data[2]
+        db_password = user_data[3]
+        role = user_data[4]
 
         if not bcrypt.check_password_hash(db_password, password):
             return redirect("/login?error=Invalid+email+or+incorrect+password")
@@ -573,13 +668,13 @@ def render_signup():
         password = request.form.get('password')
         password2 = request.form.get('password2')
 
-        if password != password2:
-            return redirect("/signup?error=Passwords+do+not+match")
-
         if len(password) < 8:
             return redirect("/signup?error=Passwords+must+be+at+least+8+characters")
 
-        # Hashes the passwords
+        if password != password2:
+            return redirect("/signup?error=Passwords+do+not+match")
+
+        # Hashes the password
         hashed_password = bcrypt.generate_password_hash(password)
         con = create_connection(DATABASE)
         cur = con.cursor()

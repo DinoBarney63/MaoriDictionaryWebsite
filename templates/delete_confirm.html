@@ -3,5 +3,25 @@
 {% block pageheading %}Confirm Delete{% endblock %}
 
 {% block main %}
-  <h3>Are you sure you want to delete {{ name }} {{ information[1] }}{% if information[2] != null%} / {{ information[2] }}{% endif %}? <a href="/individual_{{ type }}/delete_{{ type }}_confirm/{{ information[0] }}">Yes</a> / <a href="/individual_{{type}}/{{ information[0] }}">No</a></h3>
-{% endblock %} <!-- >To be able to reuse this page for the categories and levels we need to add a if condition to check for the extra value. Also the inclusion of the type variable allows us to use this same page for words, categories and levels<!-->
+  <h3>Are you sure you want to delete {{ name }} {{ information[1] }}{% if information[2] != null %} / {{ information[2] }}{% endif %}? <a href="/individual_{{ type }}/delete_{{ type }}_confirm/{{ information[0] }}">Yes</a> / <a href="/individual_{{type}}/{{ information[0] }}">No</a></h3>
+  <!-- >To be able to reuse this page for the categories and levels we need to add a if condition to check for the extra value. Also the inclusion of the type variable allows us to use this same page for words, categories and levels<!-->
+
+  {% if type != 'word' %}
+    <h4>Words that will be affected by deleting this {{ type }}.</h4>
+
+    <table id="word_list">
+      <tr>
+        <th style="width:40%">Maori Word</th>
+        <th style="width:40%">English Translation</th>
+        <th style="width:20%">{{ name }}</th>
+      </tr>
+      {% for word in affected_words %}
+        <tr>
+          <td>{{ word[1] }}</a></td>
+          <td>{{ word[2] }}</td>
+          <td>{{ word[3] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+{% endblock %}
