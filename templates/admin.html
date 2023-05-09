@@ -61,14 +61,62 @@
 </div>
 
 <h3 class="collapsible_header">Filter Admin</h3>
-<button type="button" class="collapsible"><h4>Category and Level Admin</h4></button>
+<button type="button" class="collapsible"><h4>Category Admin</h4></button>
 <div class="content">
-  <table>
+  <table class="list">
     <tr>
-      <td style="width: 50%"><a href="/category_list">Edit Categories</a></td>
-      <td style="width: 50%"><a href="/level_list">Edit Levels</a></td>
+      <th style="width:60%">Category</th>
+      <th style="width:20%">Edit</th>
+      <th style="width:20%">Delete</th>
     </tr>
+    {% for category in category_list %}
+      <tr>
+        <td>{{ category[1] }}</td>
+        <td><a href="/individual_category/edit_category/{{ category[0] }}">Edit</a></td>
+        <td><a href="/individual_category/delete_category/{{ category[0] }}">Delete</a></td>
+      </tr>
+    {% endfor %}
   </table>
+
+  <form class="my-form" method="POST" action="/add_category">
+    <div class="form-group">
+      <div class="form-label">Category Name:</div>
+      <div class="form-element"><input type="text" name="category_name" id="category_name"></div>
+    </div>
+    <div class="form-group">
+      <div class="form-label"></div>
+      <div class="form-element"><input type="submit" value="Add Category"></div>
+    </div>
+  </form>
+</div>
+
+<button type="button" class="collapsible"><h4>Level Admin</h4></button>
+<div class="content">
+  <table class="list">
+    <tr>
+      <th style="width:60%">Level</th>
+      <th style="width:20%">Edit</th>
+      <th style="width:20%">Delete</th>
+    </tr>
+    {% for level in level_list %}
+      <tr>
+        <td>{{ level[1] }}</td>
+        <td><a href="/individual_level/edit_level/{{ level[0] }}">Edit</a></td>
+        <td><a href="/individual_level/delete_level/{{ level[0] }}">Delete</a></td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <form class="my-form" method="POST" action="/add_level">
+    <div class="form-group">
+      <div class="form-label">Level Name:</div>
+      <div class="form-element"><input type="text" name="level_name" id="level_name"></div>
+    </div>
+    <div class="form-group">
+      <div class="form-label"></div>
+      <div class="form-element"><input type="submit" value="Add Level"></div>
+    </div>
+  </form>
 </div>
 
 <h3 class="collapsible_header">User Admin</h3>

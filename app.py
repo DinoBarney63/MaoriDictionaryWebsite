@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -79,9 +79,10 @@ def reformat_word_info(word):
 def reformat_word_list(words):
     word_list = []
     for word in words:
-        if len(word) < 4:
-            word.append("")
-        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).title())
+        if len(word) == 4:
+            word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title())
+        elif len(word) == 5:
+            word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]))
         word_list.append(word)
     return word_list
 
@@ -318,25 +319,6 @@ def add_category():
 
         return redirect('/category_list')
 
-
-@app.route('/category_list')
-def render_category_list():
-    if not is_admin():
-        return redirect('/')
-
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM category"
-    cur.execute(query)
-    categories = cur.fetchall()
-    con.close()
-
-    # Reformatting the categories to be displayed
-    category_list = reformat_category_list(categories)
-    return render_template('filter_list.html', page_name='Category List', logged_in=is_logged_in(), admin=is_admin(),
-                           filter_list=category_list, type='category', name='Category')
-
-
 @app.route('/individual_category/<category_id>')
 def individual_category(category_id):
     return redirect('/category_list')
@@ -463,22 +445,6 @@ def add_level():
         con.close()
 
         return redirect('/level_list')
-
-
-@app.route('/level_list')
-def render_level_list():
-    if not is_admin():
-        return redirect('/')
-
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM level"
-    cur.execute(query)
-    level_list = cur.fetchall()
-    con.close()
-
-    return render_template('filter_list.html', page_name='Level List', logged_in=is_logged_in(), admin=is_admin(),
-                           filter_list=level_list, type='level', name='Level')
 
 
 @app.route('/individual_level/<level_id>')

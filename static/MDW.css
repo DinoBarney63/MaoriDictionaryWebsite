@@ -154,11 +154,7 @@ td, th {
   padding: 8px;
 }
 
-#word_list tr:nth-child(even) {background-color: #f2f2f2;}
-
-#word_list tr:hover {background-color: #dddddd;}
-
-#word_list th, #filterlist th, #wordinfomation .header {
+.list th, .info .header {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
@@ -166,16 +162,13 @@ td, th {
   color: white;
 }
 
-.filter_list tr:nth-child(even) {background-color: #f2f2f2;}
+.list {border: 1px solid #b4b4b4;}
 
-.filter_list tr:hover {background-color: #dddddd;}
+.list tr:nth-child(odd) {background-color: #fdfdfd;}
 
+.list tr:nth-child(even) {background-color: #f2f2f2;}
 
-.filter_table{border: 1px solid #b4b4b4;}
-
-.filter_table tr:nth-child(odd) {background-color: #fdfdfd;}
-
-.filter_table tr:hover {background-color: #dddddd;}
+.list tr:hover {background-color: #dddddd;}
 
 .column {
   float: left;
