@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -79,7 +79,9 @@ def reformat_word_info(word):
 def reformat_word_list(words):
     word_list = []
     for word in words:
-        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), word[4])
+        if len(word) < 4:
+            word.append("")
+        word = (word[0], str(word[1]).title(), str(word[2]).title(), str(word[3]).title(), str(word[4]).title())
         word_list.append(word)
     return word_list
 
@@ -351,7 +353,7 @@ def render_edit_category(category_id):
     category = (category_info[1]).lower()
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+    query = "SELECT id, maori_word, english_translation, category FROM vocab_list WHERE category=?"
     cur.execute(query, (category,))
     word_list = cur.fetchall()
     con.close()
@@ -395,7 +397,7 @@ def render_delete_category(category_id):
     category = (category_info[1]).lower()
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+    query = "SELECT id, maori_word, english_translation, category FROM vocab_list WHERE category=?"
     cur.execute(query, (category,))
     word_list = cur.fetchall()
     con.close()
@@ -417,7 +419,7 @@ def delete_category_confirm(category_id):
     category = (category_info[1]).lower()
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
+    query = "SELECT id, maori_word, english_translation, category FROM vocab_list WHERE category=?"
     cur.execute(query, (category,))
     word_list = cur.fetchall()
 
@@ -495,7 +497,7 @@ def render_edit_level(level_id):
     level = (level_info[1])
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT id, maori_word, english_translation, level, level FROM vocab_list WHERE level=?"
+    query = "SELECT id, maori_word, english_translation, level FROM vocab_list WHERE level=?"
     cur.execute(query, (level,))
     word_list = cur.fetchall()
     con.close()
@@ -520,7 +522,6 @@ def render_edit_level(level_id):
         con.commit()
         con.close()
 
-
         return redirect('/level_list')
 
     # Reformatting the words to be displayed
@@ -540,7 +541,7 @@ def render_delete_level(level_id):
     level = (level_info[1])
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT id, maori_word, english_translation, level, level FROM vocab_list WHERE level=?"
+    query = "SELECT id, maori_word, english_translation, level FROM vocab_list WHERE level=?"
     cur.execute(query, (level,))
     word_list = cur.fetchall()
     con.close()
@@ -562,7 +563,7 @@ def delete_level_confirm(level_id):
     level = (level_info[1])
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT id, maori_word, english_translation, level, level FROM vocab_list WHERE level=?"
+    query = "SELECT id, maori_word, english_translation, level FROM vocab_list WHERE level=?"
     cur.execute(query, (level,))
     word_list = cur.fetchall()
 
