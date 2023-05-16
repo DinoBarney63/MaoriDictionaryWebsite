@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -47,8 +47,9 @@ def is_admin():
 # Check to see if the user has a school email
 def in_school():
     if is_logged_in():
-        email_parts = session.get('email').split('.')
-        if "school" in email_parts:
+        email_parts = session.get('email').split('@')
+        address_parts = email_parts[1].split('.')
+        if "school" in address_parts:
             return True
     else:
         return False
@@ -417,7 +418,6 @@ def delete_category_confirm(category_id):
     cur.execute(query, (category_id,))
     con.commit()
     con.close()
-
 
     return redirect("/")
 
