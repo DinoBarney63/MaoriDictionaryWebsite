@@ -555,6 +555,68 @@ def delete_level_confirm(level_id):
     return redirect("/")
 
 
+@app.route('/individual_user/edit_user/<user_id>', methods=['POST', 'GET'])
+def render_edit_user(user_id):
+    if not is_admin():
+        return redirect('/')
+
+    if request.method == 'POST':
+        first_name = request.form.get('first_name').title().strip()
+        last_name = request.form.get('last_name').title().strip()
+        role = request.form.get('role')
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "UPDATE user SET first_name = ?, last_name = ?, role = ? WHERE id = ?"
+        cur.execute(query, (first_name, last_name, role, user_id))
+        con.commit()
+        con.close()
+
+        return redirect('/admin')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, first_name, last_name, email, role FROM user WHERE id=?"
+    cur.execute(query, (user_id,))
+    user_info = cur.fetchall()
+    user_info = user_info[0]
+
+    return render_template("edit_user_information.html", page_name='Edit User ' + user_id, logged_in=is_logged_in(),
+                           admin=is_admin(), user_information=user_info, roles=['User', 'Student', 'Teacher', 'Admin'])
+
+
+
+@app.route('/individual_user/delete_user/<user_id>')
+def render_delete_user(user_id):
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT id, first_name, last_name, email FROM user WHERE id=?"
+    cur.execute(query, (user_id,))
+    user_info = cur.fetchall()
+    user_info = user_info[0]
+
+    return render_template('delete_confirm.html', page_name='Delete User ' + user_id, logged_in=is_logged_in(),
+                           admin=is_admin(), information=user_info, type='user', name='User')
+
+
+@app.route('/individual_user/delete_user_confirm/<user_id>')
+def delete_user_confirm(user_id):
+    if not is_admin():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = "DELETE FROM user WHERE id = ?"
+    cur.execute(query, (user_id,))
+    con.commit()
+    con.close()
+
+    return redirect("/admin")
+
+
 @app.route('/admin')
 def render_admin():
     if not is_admin():

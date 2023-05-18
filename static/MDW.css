@@ -186,3 +186,11 @@ td, th {
     margin-left: 5px;
     width: 99%;
 }
+
+footer{
+    background-color: #323232;
+    font-size: 1.5rem;
+    padding: 0.4rem;
+    margin-top: 2rem;
+    color: red;
+}
