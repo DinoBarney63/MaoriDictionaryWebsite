@@ -123,22 +123,20 @@
 <button type="button" class="collapsible"><h4>Edit user Permissions / Delete User</h4></button>
 <div class="content">
   <p>Here is where the user stuff will go</p>
-  <p>At the top will be a selector to select what user will be displayed below</p>
+
   <table>
     <tr>
-      <td>First Name</td>
-      <td>Last Name</td>
+      <th style="width:20%">First Name</th>
+      <th style="width:20%">Last Name</th>
+      <th style="width:60%">Email</th>
     </tr>
+    {% for user in user_list%}
     <tr>
-      <td colspan="2">Email</td>
+      <td>{{ user[1] }}</td>
+      <td>{{ user[2] }}</td>
+      <td>{{ user[3] }}</td>
     </tr>
-    <tr>
-      <td colspan="2">Role</td>
-    </tr>
-    <tr>
-      <td>Edit User Role</td>
-      <td>Delete User</td>
-    </tr>
+    {% endfor %}
   </table>
 </div>
 {% endblock %}

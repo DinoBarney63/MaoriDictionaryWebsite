@@ -3,8 +3,8 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -302,7 +302,10 @@ def add_category():
 
     if request.method == "POST":
         # Reformat the category to all lowercase
-        category_name = request.form.get('filter_name').lower().strip()
+        category_name = request.form.get('category_name').lower().strip()
+
+        if not category_name.isalpha():
+            return redirect("/admin?error=Category+can+only+contain+letters")
 
         con = create_connection(DATABASE)
         cur = con.cursor()
@@ -313,16 +316,16 @@ def add_category():
             cur.execute(query, (category_name,))
         except sqlite3.IntegrityError:
             con.close()
-            return redirect('/category_list?error=Category+already+exists')
+            return redirect('/admin?error=Category+already+exists')
 
         con.commit()
         con.close()
 
-        return redirect('/category_list')
+        return redirect('/admin')
 
 @app.route('/individual_category/<category_id>')
 def individual_category(category_id):
-    return redirect('/category_list')
+    return redirect('/admin')
 
 
 @app.route('/individual_category/edit_category/<category_id>', methods=['POST', 'GET'])
@@ -345,6 +348,9 @@ def render_edit_category(category_id):
         # Reformat the name to all lowercase
         category_name = request.form.get('filter_name').lower().strip()
 
+        if not category_name.isalpha():
+            return redirect("/individual_category/edit_category/" + category_id + "?error=Category+can+only+contain+letters")
+
         con = create_connection(DATABASE)
         cur = con.cursor()
 
@@ -361,7 +367,7 @@ def render_edit_category(category_id):
         con.commit()
         con.close()
 
-        return redirect('/category_list')
+        return redirect('/admin')
 
     # Reformatting the words to be displayed
     word_list = reformat_word_list(word_list)
@@ -428,7 +434,7 @@ def add_level():
         return redirect('/')
 
     if request.method == "POST":
-        level_number = request.form.get('filter_number')
+        level_number = request.form.get('level_number')
 
         con = create_connection(DATABASE)
         cur = con.cursor()
@@ -439,17 +445,17 @@ def add_level():
             cur.execute(query, (level_number,))
         except sqlite3.IntegrityError:
             con.close()
-            return redirect('/level_list?error=Level+already+exists')
+            return redirect('/admin?error=Level+already+exists')
 
         con.commit()
         con.close()
 
-        return redirect('/level_list')
+        return redirect('/admin')
 
 
 @app.route('/individual_level/<level_id>')
 def individual_level(level_id):
-    return redirect('/level_list')
+    return redirect('/admin')
 
 
 @app.route('/individual_level/edit_level/<level_id>', methods=['POST', 'GET'])
@@ -488,7 +494,7 @@ def render_edit_level(level_id):
         con.commit()
         con.close()
 
-        return redirect('/level_list')
+        return redirect('/admin')
 
     # Reformatting the words to be displayed
     word_list = reformat_word_list(word_list)
@@ -634,6 +640,13 @@ def render_signup():
         email = request.form.get('email').lower().strip()
         password = request.form.get('password')
         password2 = request.form.get('password2')
+
+        if not first_name.isalpha() and not last_name.isalpha():
+            return redirect("/signup?error=First+name+and+last+name+can+only+contain+letters")
+        elif not first_name.isalpha():
+            return redirect("/signup?error=First+name+can+only+contain+letters")
+        elif not last_name.isalpha():
+            return redirect("/signup?error=Last+name+can+only+contain_letters")
 
         if len(password) < 8:
             return redirect("/signup?error=Passwords+must+be+at+least+8+characters")
