@@ -7,13 +7,13 @@
   <!-- >Made it so the current maori word already inputted into the selection</!-->
   <div class="form-group">
     <div class="form-label">Maori Word:</div>
-    <div class="form-element"><input type="text" name="maori_word" id="maori_word" value="{{ word_information[1] }}" required></div>
+    <div class="form-element"><input type="text" name="maori_word" id="maori_word" value="{{ word_information[1] }}" required MAXLENGTH="30"></div>
   </div>
   <div class="error">{{maori_word_error}}</div>
   <!-- >Made it so the current english translation already inputted into the selection</!-->
   <div class="form-group">
     <div class="form-label">English Translation:</div>
-    <div class="form-element"><input type="text" name="english_translation" id="english_translation" value="{{ word_information[2] }}" required></div>
+    <div class="form-element"><input type="text" name="english_translation" id="english_translation" value="{{ word_information[2] }}" required MAXLENGTH="30"></div>
   </div>
   <div class="error">{{english_translation_error}}</div>
   <div class="form-group">
@@ -21,7 +21,7 @@
     <div class="form-element">
       <select id="category" name="category">
         <option>None</option>
-        <!-- >Made it so the current category is the one selected on the drop down list</!-->
+        <!-- >Made it so the current category is the one selected on the dropdown list</!-->
         {% for category in category_list %}
           {% if category[1] == word_information[3] %}
             <option selected="selected">{{ category[1] }}</option>
@@ -35,7 +35,7 @@
   <!-- >Made it so the current definition already inputted into the selection</!-->
   <div class="form-group">
     <div class="form-label">Definition:</div>
-    <div class="form-element"><input type="text" name="definition" id="definition" value="{{ word_information[4] }}" required></div>
+    <div class="form-element"><input type="text" name="definition" id="definition" value="{{ word_information[4] }}" MAXLENGTH="100"></div>
   </div>
   <div class="form-group">
     <div class="form-label">Level:</div>

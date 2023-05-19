@@ -8,12 +8,12 @@
   {% if type != "level" %}
     <div class="form-group">
       <div class="form-label">{{ name }} Name:</div>
-      <div class="form-element"><input type="text" name="filter_name" id="filter_name" value="{{ information[1] }}"></div>
+      <div class="form-element"><input type="text" name="filter_name" id="filter_name" value="{{ information[1] }}" required MAXLENGTH="30"></div>
     </div>
   {% else %}
     <div class="form-group">
       <div class="form-label">{{ name }} Number:</div>
-      <div class="form-element"><input type="number" name="filter_number" id="filter_number" value="{{ information[1] }}"></div>
+      <div class="form-element"><input type="number" name="filter_number" id="filter_number" value="{{ information[1] }}" required></div>
     </div>
   {% endif %}
   <div class="form-group">

@@ -7,25 +7,20 @@
   <!-- >Made it so the current first name already inputted into the selection</!-->
   <div class="form-group">
     <div class="form-label">First Name:</div>
-    <div class="form-element"><input type="text" name="first_name" id="first_name" value="{{ user_information[1] }}" required></div>
+    <div class="form-element"><input type="text" name="first_name" id="first_name" value="{{ user_information[1] }}" required MAXLENGTH="30"></div>
   </div>
   <div class="error">{{first_name_error}}</div>
-  <!-- >Made it so the current english translation already inputted into the selection</!-->
+  <!-- >Made it so the current last name already inputted into the selection</!-->
   <div class="form-group">
     <div class="form-label">Last Name:</div>
-    <div class="form-element"><input type="text" name="last_name" id="last_name" value="{{ user_information[2] }}" required></div>
+    <div class="form-element"><input type="text" name="last_name" id="last_name" value="{{ user_information[2] }}" required MAXLENGTH="30"></div>
   </div>
   <div class="error">{{last_name_error}}</div>
-  <!-- >Made it so the current definition already inputted into the selection</!-->
-  <div class="form-group">
-    <div class="form-label">Email:</div>
-    <div class="form-element"><input type="text" name="email" id="email" value="{{ user_information[3] }}" required></div>
-  </div>
   <div class="form-group">
     <div class="form-label">Role:</div>
     <div class="form-element">
       <select id="role" name="role">
-        <!-- >Made it so the current role is the one selected on the drop down list</!-->
+        <!-- >Made it so the current role is the one selected on the dropdown list</!-->
         {% for role in roles %}
           {% if role == user_information[4] %}
             <option selected="selected">{{ role }}</option>

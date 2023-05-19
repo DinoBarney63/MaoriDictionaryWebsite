@@ -3,26 +3,35 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 
-# DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
-DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
+DATABASE = "C:/Users/19164/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # School Computer
+# DATABASE = "C:/Users/ryanj/PycharmProjects/Pycharm---MaoriDictionaryWebsite/MaoriDictionary.db"  # Home Laptop
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 app.secret_key = "Key123"  # Whatever you want
 
 
+# Creates a connection to the database with the database provided
 def create_connection(db_file):
-    """
-    Create a connection with the database
-    parameter: name of the database file
-    return: a connection to the file
-    """
     try:
         connection = sqlite3.connect(db_file)
         return connection
     except Error as e:
         print(e)
     return None
+
+
+# Executes a database action based on the query and execution provided and will return data if required
+def execute_database_action(query, execute):
+    connection = create_connection(DATABASE)
+    cursor = connection.cursor()
+    if execute is None:
+        cursor.execute(query)
+    else:
+        cursor.execute(query, execute)
+    data = cursor.fetchall()
+    connection.close()
+    return data
 
 
 # Check to see if the user is logged in
@@ -57,12 +66,9 @@ def in_school():
 
 # Gets word info and reformat it
 def get_word_info(word_id):
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT * FROM vocab_list WHERE id = ?"
-    cur.execute(query, (word_id,))
-    word_info = cur.fetchall()
-    con.close()
+    execute = (word_id,)
+    word_info = execute_database_action(query=query, execute=execute)
 
     word_info = word_info[0]
     word_info = reformat_word_info(word_info)
@@ -90,12 +96,9 @@ def reformat_word_list(words):
 
 # Gets category info and reformat it
 def get_category_info(category_id):
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT * FROM category WHERE id = ?"
-    cur.execute(query, (category_id,))
-    category_info = cur.fetchall()
-    con.close()
+    execute = (category_id,)
+    category_info = execute_database_action(query=query, execute=execute)
 
     category_info = reformat_category_list(category_info)
     return category_info[0]
@@ -112,12 +115,9 @@ def reformat_category_list(categories):
 
 # Gets level info
 def get_level_info(level_id):
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT * FROM level WHERE id = ?"
-    cur.execute(query, (level_id,))
-    level_info = cur.fetchall()
-    con.close()
+    execute = (level_id,)
+    level_info = execute_database_action(query=query, execute=execute)
 
     return level_info[0]
 
@@ -135,33 +135,29 @@ def render_home():
 @app.route('/word_list/<category_id>_<level_id>')
 def render_word_list(category_id, level_id):
     # Gets the category and level lists to be displayed
-    con = create_connection(DATABASE)
-    cur = con.cursor()
+    execute = None
     query = "SELECT id, name FROM category"
-    cur.execute(query)
-    category_list = cur.fetchall()
+    category_list = execute_database_action(query=query, execute=execute)
     query = "SELECT id, number FROM level"
-    cur.execute(query)
-    level_list = cur.fetchall()
+    level_list = execute_database_action(query=query, execute=execute)
 
     category = category_list[int(category_id) - 1][1]
     level = int(level_id)
     # If there is no filter then we select all the words otherwise we select those with the correct filter
     if category_id == "0" and level_id == "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
-        cur.execute(query)
+        execute = None
     elif category_id != "0" and level_id == "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=?"
-        cur.execute(query, (category,))
+        execute = (category,)
     elif category_id == "0" and level_id != "0":
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE level=?"
-        cur.execute(query, (level,))
+        execute = (level,)
     else:
         query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list WHERE category=? AND level=?"
         # Here we need to use an AND not a comma
-        cur.execute(query, (category, level))
-    word_list = cur.fetchall()
-    con.close()
+        execute = (category, level)
+    word_list = execute_database_action(query=query, execute=execute)
 
     # Reformatting the words to be displayed
     word_list = reformat_word_list(word_list)
@@ -193,12 +189,9 @@ def add_word():
         if image_name == "":
             image_name = "none"
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = "INSERT INTO vocab_list (maori_word, english_translation, category, definition, level, last_edited_time, last_edited_user, image_name) VALUES (?, ?, ?, ?, ?, datetime('now','localtime'), ?, ?)"
-        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name))
-        con.commit()
-        con.close()
+        execute = (maori_word, english_translation, category, definition, level, last_edited_user, image_name)
+        execute_database_action(query=query, execute=execute)
 
         return redirect('/admin')
 
@@ -232,32 +225,27 @@ def render_edit_word_information(word_id):
         if image_name == "":
             image_name = "none"
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = "UPDATE vocab_list SET maori_word = ?, english_translation = ?, category = ?, definition = ?, level = ?, last_edited_time = datetime('now','localtime'), last_edited_user = ?, image_name = ? WHERE id = ?"
-        cur.execute(query, (maori_word, english_translation, category, definition, level, last_edited_user, image_name,
-                            word_id))
+        execute = (maori_word, english_translation, category, definition, level, last_edited_user, image_name,
+                            word_id)
         # Here we needed to organise the variables in the order we want them to be in when they are put into the ?
-        con.commit()
-        con.close()
+        execute_database_action(query=query, execute=execute)
 
         return redirect('/individual_word/' + word_id)
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     # Get word information
     query = "SELECT * FROM vocab_list WHERE id = ?"
-    cur.execute(query, (word_id,))
-    word_info = cur.fetchall()
+    execute = (query, (word_id,))
+    word_info = execute_database_action(query=query, execute=execute)
+
     # Get categories
     query = "SELECT * FROM category"
-    cur.execute(query)
-    categories = cur.fetchall()
+    execute = None
+    categories = execute_database_action(query=query, execute=execute)
     # Get levels
     query = "SELECT * FROM level"
-    cur.execute(query)
-    level_list = cur.fetchall()
-    con.close()
+    execute = None
+    level_list = execute_database_action(query=query, execute=execute)
 
     # Reformatting the word info to be displayed
     word_info = word_info[0]
@@ -285,12 +273,9 @@ def delete_word_confirm(word_id):
     if not is_admin():
         return redirect('/individual_word/' + word_id)
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "DELETE FROM vocab_list WHERE id = ?"
-    cur.execute(query, (word_id,))
-    con.commit()
-    con.close()
+    execute = (word_id,)
+    execute_database_action(query=query, execute=execute)
 
     return redirect("/word_list/0_0")
 
@@ -307,21 +292,17 @@ def add_category():
         if not category_name.isalpha():
             return redirect("/admin?error=Category+can+only+contain+letters")
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = "INSERT INTO category (name) VALUES (?)"
+        execute = (category_name,)
 
         # Checks to see if the category already exists
         try:
-            cur.execute(query, (category_name,))
+            execute_database_action(query=query, execute=execute)
         except sqlite3.IntegrityError:
-            con.close()
             return redirect('/admin?error=Category+already+exists')
 
-        con.commit()
-        con.close()
-
         return redirect('/admin')
+
 
 @app.route('/individual_category/<category_id>')
 def individual_category(category_id):
@@ -337,12 +318,9 @@ def render_edit_category(category_id):
     category_info = get_category_info(category_id)
 
     category = (category_info[1]).lower()
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, category FROM vocab_list WHERE category=?"
-    cur.execute(query, (category,))
-    word_list = cur.fetchall()
-    con.close()
+    execute = (category,)
+    word_list = execute_database_action(query=query, execute=execute)
 
     if request.method == 'POST':
         # Reformat the name to all lowercase
@@ -351,21 +329,17 @@ def render_edit_category(category_id):
         if not category_name.isalpha():
             return redirect("/individual_category/edit_category/" + category_id + "?error=Category+can+only+contain+letters")
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
-
         # Edit all words in word list
         for word in word_list:
             word_id = word[0]
             query = "UPDATE vocab_list SET category = ? WHERE id = ?"
-            cur.execute(query, (category_name, word_id))
-            con.commit()
+            execute = (category_name, word_id)
+            execute_database_action(query=query, execute=execute)
 
         # Updates the category
         query = "UPDATE category SET name = ? WHERE id = ?"
-        cur.execute(query, (category_name, category_id))
-        con.commit()
-        con.close()
+        execute = (category_name, category_id)
+        execute_database_action(query=query, execute=execute)
 
         return redirect('/admin')
 
@@ -384,12 +358,9 @@ def render_delete_category(category_id):
     category_info = get_category_info(category_id)
 
     category = (category_info[1]).lower()
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, category FROM vocab_list WHERE category=?"
-    cur.execute(query, (category,))
-    word_list = cur.fetchall()
-    con.close()
+    execute = (category,)
+    word_list = execute_database_action(query=query, execute=execute)
 
     # Reformatting the words to be displayed
     word_list = reformat_word_list(word_list)
@@ -406,24 +377,21 @@ def delete_category_confirm(category_id):
     category_info = get_category_info(category_id)
 
     category = (category_info[1]).lower()
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, category FROM vocab_list WHERE category=?"
-    cur.execute(query, (category,))
-    word_list = cur.fetchall()
+    execute = (category,)
+    word_list = execute_database_action(query=query, execute=execute)
 
     # Edit all words in word list
     for word in word_list:
         word_id = word[0]
         query = "UPDATE vocab_list SET category = null WHERE id = ?"
-        cur.execute(query, (word_id, ))
-        con.commit()
+        execute = (word_id, )
+        execute_database_action(query=query, execute=execute)
 
     # Deletes the category
     query = "DELETE FROM category WHERE id = ?"
-    cur.execute(query, (category_id,))
-    con.commit()
-    con.close()
+    execute = (category_id,)
+    execute_database_action(query=query, execute=execute)
 
     return redirect("/")
 
@@ -436,19 +404,14 @@ def add_level():
     if request.method == "POST":
         level_number = request.form.get('level_number')
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = "INSERT INTO level (number) VALUES (?)"
+        execute = (level_number,)
 
         # Checks to see if the level already exists
         try:
-            cur.execute(query, (level_number,))
+            execute_database_action(query=query, execute=execute)
         except sqlite3.IntegrityError:
-            con.close()
             return redirect('/admin?error=Level+already+exists')
-
-        con.commit()
-        con.close()
 
         return redirect('/admin')
 
@@ -467,32 +430,25 @@ def render_edit_level(level_id):
     level_info = get_level_info(level_id)
 
     level = (level_info[1])
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, level FROM vocab_list WHERE level=?"
-    cur.execute(query, (level,))
-    word_list = cur.fetchall()
-    con.close()
+    execute = (level,)
+    word_list = execute_database_action(query=query, execute=execute)
 
     if request.method == 'POST':
         # Reformat the name to all lowercase
         level_number = request.form.get('filter_number').strip()
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
-
         # Edit all words in word list
         for word in word_list:
             word_id = word[0]
             query = "UPDATE vocab_list SET level = ? WHERE id = ?"
-            cur.execute(query, (level_number, word_id))
-            con.commit()
+            execute = (level_number, word_id)
+            execute_database_action(query=query, execute=execute)
 
         # Updates the level
         query = "UPDATE level SET number = ? WHERE id = ?"
-        cur.execute(query, (level_number, level_id))
-        con.commit()
-        con.close()
+        execute = (level_number, level_id)
+        execute_database_action(query=query, execute=execute)
 
         return redirect('/admin')
 
@@ -511,12 +467,9 @@ def render_delete_level(level_id):
     level_info = get_level_info(level_id)
 
     level = (level_info[1])
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, level FROM vocab_list WHERE level=?"
-    cur.execute(query, (level,))
-    word_list = cur.fetchall()
-    con.close()
+    execute = (level,)
+    word_list = execute_database_action(query=query, execute=execute)
 
     # Reformatting the words to be displayed
     word_list = reformat_word_list(word_list)
@@ -533,24 +486,21 @@ def delete_level_confirm(level_id):
     level_info = get_level_info(level_id)
 
     level = (level_info[1])
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, level FROM vocab_list WHERE level=?"
-    cur.execute(query, (level,))
-    word_list = cur.fetchall()
+    execute = (level,)
+    word_list = execute_database_action(query=query, execute=execute)
 
     # Edit all words in word list
     for word in word_list:
         word_id = word[0]
         query = "UPDATE vocab_list SET level = null WHERE id = ?"
-        cur.execute(query, (word_id,))
-        con.commit()
+        execute = (word_id,)
+        execute_database_action(query=query, execute=execute)
 
     # Deletes the category
     query = "DELETE FROM level WHERE id = ?"
-    cur.execute(query, (level_id,))
-    con.commit()
-    con.close()
+    execute = (level_id,)
+    execute_database_action(query=query, execute=execute)
 
     return redirect("/")
 
@@ -565,20 +515,15 @@ def render_edit_user(user_id):
         last_name = request.form.get('last_name').title().strip()
         role = request.form.get('role')
 
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = "UPDATE user SET first_name = ?, last_name = ?, role = ? WHERE id = ?"
-        cur.execute(query, (first_name, last_name, role, user_id))
-        con.commit()
-        con.close()
+        execute = (first_name, last_name, role, user_id)
+        execute_database_action(query=query, execute=execute)
 
         return redirect('/admin')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, first_name, last_name, email, role FROM user WHERE id=?"
-    cur.execute(query, (user_id,))
-    user_info = cur.fetchall()
+    execute = (user_id,)
+    user_info = execute_database_action(query=query, execute=execute)
     user_info = user_info[0]
 
     return render_template("edit_user_information.html", page_name='Edit User ' + user_id, logged_in=is_logged_in(),
@@ -591,11 +536,9 @@ def render_delete_user(user_id):
     if not is_admin():
         return redirect('/')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, first_name, last_name, email FROM user WHERE id=?"
-    cur.execute(query, (user_id,))
-    user_info = cur.fetchall()
+    execute = (user_id,)
+    user_info = execute_database_action(query=query, execute=execute)
     user_info = user_info[0]
 
     return render_template('delete_confirm.html', page_name='Delete User ' + user_id, logged_in=is_logged_in(),
@@ -607,12 +550,9 @@ def delete_user_confirm(user_id):
     if not is_admin():
         return redirect('/')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "DELETE FROM user WHERE id = ?"
-    cur.execute(query, (user_id,))
-    con.commit()
-    con.close()
+    execute = (user_id,)
+    execute_database_action(query=query, execute=execute)
 
     return redirect("/admin")
 
@@ -622,21 +562,18 @@ def render_admin():
     if not is_admin():
         return redirect('/')
 
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "SELECT id, maori_word, english_translation, category, level FROM vocab_list"
-    cur.execute(query)
-    words = cur.fetchall()
+    execute = None
+    words = execute_database_action(query=query, execute=execute)
     query = "SELECT * FROM category"
-    cur.execute(query)
-    categories = cur.fetchall()
+    execute = None
+    categories = execute_database_action(query=query, execute=execute)
     query = "SELECT * FROM level"
-    cur.execute(query)
-    level_list = cur.fetchall()
+    execute = None
+    level_list = execute_database_action(query=query, execute=execute)
     query = "SELECT * FROM user"
-    cur.execute(query)
-    user_list = cur.fetchall()
-    con.close()
+    execute = None
+    user_list = execute_database_action(query=query, execute=execute)
 
     # Reformatting the words to be displayed
     word_list = reformat_word_list(words)
@@ -654,12 +591,10 @@ def render_login():
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = """SELECT id, first_name, last_name, password, role FROM user WHERE email = ?"""
-        cur.execute(query, (email,))
-        user_data = cur.fetchone()
-        con.close()
+        execute = (email,)
+        user_data = execute_database_action(query=query, execute=execute)
+        user_data = user_data[0]
 
         if user_data is None:
             return redirect("/login?error=Invalid+email+or+incorrect+password")
@@ -718,19 +653,14 @@ def render_signup():
 
         # Hashes the password
         hashed_password = bcrypt.generate_password_hash(password)
-        con = create_connection(DATABASE)
-        cur = con.cursor()
         query = "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)"
+        execute = (first_name, last_name, email, hashed_password, "User")
 
         # Checks to see if the email has already been used
         try:
-            cur.execute(query, (first_name, last_name, email, hashed_password, "User"))
+            execute_database_action(query=query, execute=execute)
         except sqlite3.IntegrityError:
-            con.close()
             return redirect('/signup?error=Email+is+already+used')
-
-        con.commit()
-        con.close()
 
         return redirect('login')
 
@@ -749,12 +679,9 @@ def render_confirm_school_role(user_id):
 
 @app.route('/signup_student/<user_id>')
 def signup_student(user_id):
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "UPDATE user SET role='Student' WHERE id = ?"
-    cur.execute(query, (user_id,))
-    con.commit()
-    con.close()
+    execute = (user_id,)
+    execute_database_action(query=query, execute=execute)
     session['role'] = 'Student'
 
     return redirect('/')
@@ -762,12 +689,9 @@ def signup_student(user_id):
 
 @app.route('/signup_teacher/<user_id>')
 def signup_teacher(user_id):
-    con = create_connection(DATABASE)
-    cur = con.cursor()
     query = "UPDATE user SET role='Teacher' WHERE id = ?"
-    cur.execute(query, (user_id,))
-    con.commit()
-    con.close()
+    execute = (user_id,)
+    execute_database_action(query=query, execute=execute)
     session['role'] = 'Teacher'
 
     return redirect('/')
